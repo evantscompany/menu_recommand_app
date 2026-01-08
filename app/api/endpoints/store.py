@@ -21,3 +21,10 @@ def create_new_store(store: schemas.StoreCreate, db: Session = Depends(get_db)):
 def read_stores(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     stores = crud.get_stores(db, skip=skip, limit=limit)
     return stores
+
+@router.delete("/{store_id}")
+def delete_store(store_id: int, db: Session = Depends(get_db)):
+    success = crud.delete_store(db, store_id=store_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="식당을 찾을 수 없습니다.")
+    return {"message": f"Store {store_id} 삭제 완료"}

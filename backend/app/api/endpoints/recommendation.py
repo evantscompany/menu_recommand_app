@@ -14,8 +14,8 @@ def get_current_weather(city: str):
 
 @router.post("/", response_model=List[schemas.Store])
 def get_recommendations(
+    inquiry: schemas.DailyInquiry,
     user_id: int, 
-    inquiry: schemas.DailyInquiry, 
     db: Session = Depends(get_db)
 ):
     """
@@ -47,12 +47,19 @@ def get_recommendations(
             weather_data=weather_data,
             history=history
         )
+
+        print(f"📍 식당: {store.store_name.ljust(10)} | 점수: {score}")
         
         if score > 0:
             scored_stores.append((score, store))
 
     # 5. 점수 높은 순으로 정렬 후 상위 3개 추출
     scored_stores.sort(key=lambda x: x[0], reverse=True)
+    print(f"--- [최종 추천 결과 Top 3] ---")
+    for i, (s, st) in enumerate(scored_stores[:3]):
+        print(f"{i+1}위: {st.store_name} ({s}점)")
+    print("-------------------------------------------\n")
+
     top_3_stores = [item[1] for item in scored_stores[:3]]
 
     if not top_3_stores:
@@ -79,3 +86,4 @@ def submit_feedback(history_id: int, feedback: schemas.FeedbackUpdate, db: Sessi
     """
     updated_history = crud.update_user_feedback(db, history_id=history_id, feedback=feedback)
     return {"message": "피드백이 반영되었습니다. 내일은 더 정확한 추천을 해드릴게요!"}
+

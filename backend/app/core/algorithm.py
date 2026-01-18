@@ -1,85 +1,97 @@
+import re
+
 def calculate_recommendation_score(store, user, daily_inquiry, weather_data, history=None):
     """
-    [통합 추천 알고리즘]
-    1. store: 식당 및 상세 정보 (Store, StoreDetail)
-    2. user: 사용자 기본 성향 및 제약 사항 (User)
-    3. daily_inquiry: 오늘의 컨디션/인원/에너지 (DailyInquiry)
+    [통합 추천 알고리즘 - 데이터 매칭 최적화 버전]
+    1. store: 식당 기본 정보 (models.Store)
+    2. user: 사용자 기본 성향 (models.User)
+    3. daily_inquiry: 프론트엔드 설문 응답 (schemas.DailyInquiry)
     4. weather_data: 실시간 날씨/온도 (dict)
-    5. history: 해당 식당에 대한 사용자의 과거 방문/피드백 기록 (UserHistory, Optional)
+    5. history: 과거 기록 (models.UserHistory, Optional)
     """
     score = 0
-    details = store.details
+    details = store.details # StoreDetail 관계
     
-    # 기초 필터: 정보가 없거나 점심 영업을 안 하면 제외
+    # 기초 필터: 상세 정보가 없거나 점심 영업을 안 하면 제외
     if not details or not store.is_lunch_available:
         return -1
 
     # --- [Step 1] 하드 필터링 (Hard Constraints) ---
-    # 예산 필터: 사용자의 점심 상한선보다 비싸면 제외
-    if store.price_level > user.lunch_budget_max:
-        return 0
     
-    # 식단 제약: 알레르기나 채식 성향이 카테고리와 충돌할 경우 (예시 로직)
-    if user.dietary_label != "none" and user.dietary_label not in store.category:
-        return 0
+    # 1. 예산 필터링 (AttributeError 해결 및 파싱 강화)
+    try:
+        raw_budget = daily_inquiry.budget_range
+        # "15000원 이하" -> 15000 추출
+        numeric_budget = int(re.sub(r'[^0-9]', '', raw_budget))
+    except (ValueError, TypeError):
+        numeric_budget = user.lunch_budget_max # 실패 시 유저 기본값
+
+    # [수정 완료] 모델의 필드명인 price_level을 사용합니다.
+    if store.price_level > numeric_budget:
+        return 0 
+    
+    # 2. 식단 제약 필터링
+    if daily_inquiry.dietary_restriction != "뭐든 잘 먹음":
+        # 식당 카테고리나 이름에 제약 키워드(예: 비건)가 포함되어 있는지 확인
+        if daily_inquiry.dietary_restriction not in store.category and \
+           daily_inquiry.dietary_restriction not in store.store_name:
+            # 엄격한 필터를 원하시면 여기서 return 0를 사용하세요. 
+            # 지금은 점수 감점 방식으로 처리합니다.
+            score -= 50
 
     # --- [Step 2] 미각 성향 매칭 (Taste Alignment) ---
-    # 사용자의 평소 취향(Threshold)과 식당 수치의 차이 계산 (적을수록 고득점)
-    spicy_diff = abs(user.spicy_threshold - details.spicy_level)
-    score += (5 - spicy_diff) * 5  # 최대 25점
+    
+    # 맵기 선호도 추출: "3(불닭볶음면)" -> 3
+    try:
+        daily_spicy = int(re.sub(r'[^0-9]', '', daily_inquiry.spicy_level)[0])
+    except (IndexError, ValueError, TypeError):
+        daily_spicy = user.spicy_threshold
 
-    salt_diff = abs(user.saltiness_preference - details.saltiness_level)
+    # 오늘의 선호도와 식당 실제 맵기(StoreDetail.spicy_level) 차이 계산
+    spicy_diff = abs(daily_spicy - details.spicy_level)
+    score += (5 - spicy_diff) * 7  # 차이가 작을수록 고득점 (최대 35점)
+
+    # 간 조절 매핑
+    salt_map = {"많이 싱겁게": 1, "싱겁게": 2, "보통": 3, "조금 짜게": 4, "많이 짜게": 5}
+    user_salt_pref = salt_map.get(daily_inquiry.salty_level, 3)
+    salt_diff = abs(user_salt_pref - details.saltiness_level)
     score += (5 - salt_diff) * 3   # 최대 15점
 
-    # --- [Step 3] 오늘의 컨디션 반영 (Daily Context) ---
-    # 오전 업무 상태 (전쟁터라면 자극적인 맛 가중치)
-    if daily_inquiry.condition == "war":
-        if details.spicy_level >= user.spicy_threshold:
-            score += 15
+    # --- [Step 3] 탐험 성향 반영 ---
     
-    # 인원 구성 (팀 단위라면 규모와 속도 중점)
-    if daily_inquiry.social == "team":
-        if store.suitable_ground_size >= 4: score += 10
-        if store.is_quick_meal: score += 10
-    
-    # 에너지 상태 (든든함 vs 가벼움)
-    if daily_inquiry.energy == "heavy":
-        score += (details.heaviness * 4)  # 최대 20점
-    else:
-        score += (5 - details.heaviness) * 4 # 가벼울수록 가점
+    if daily_inquiry.exploration_style == "모험형(새로운 도전)":
+        if not history or history.visit_count == 0:
+            score += 20  # 방문한 적 없는 식당 가산점
+    elif daily_inquiry.exploration_style == "안정형(익숙한 맛)":
+        if history and history.visit_count > 0:
+            score += 15  # 가본 적 있는 식당 가산점
 
     # --- [Step 4] 실시간 외부 환경 (Environment) ---
-    current_weather = weather_data.get("weather")
-    # 비/눈 올 때의 특수 선호도 (식감 및 무게감)
+    current_weather = weather_data.get("weather", "Clear")
+    
+    # 비/눈 올 때 무거운 음식 혹은 바삭한 음식 선호도
     if current_weather in ["Rain", "Snow", "Drizzle"]:
-        if details.texture == "crispy": score += 10  # 바삭함(튀김/전 등)
-        if details.heaviness >= 4.0: score += 10    # 묵직한 국물
-    # 온도에 따른 보정
+        if details.texture == "Crispy": score += 10  
+        if details.heaviness >= 4.0: score += 10    
+    
+    # 더울 때 차가운 음식 가산점
     if weather_data.get("temp", 20) > 28 and details.serving_temperature == "Cold":
         score += 15
 
     # --- [Step 5] 과거 피드백 반영 (Feedback Learning) ---
     if history:
-        # 평점이 높았던 곳은 강력 추천
         if history.user_rating and history.user_rating >= 4:
-            score += 25 
-        # 재방문 의사가 없다고 한 곳은 강력 제외
+            score += 25 # 만족했던 곳은 가점
         if history.is_revisit_intended is False:
-            score -= 100
-        # 평점이 낮았던 곳 감점
+            return 0    # 재방문 의사 없는 곳은 제외
         if history.user_rating and history.user_rating <= 2:
-            score -= 40
-        # 다양성 유지: 어제 먹은 카테고리는 오늘 피함
+            score -= 40 # 불만족했던 곳 감점
         if history.last_eaten_category == store.category:
-            score -= 30
+            score -= 20 # 방금 먹은 메뉴 카테고리는 가급적 피함
 
-    # --- [Step 6] 신뢰도 및 성향 보정 ---
-    # 광고 의심 지수 패널티 및 실제 만족도 가점
+    # --- [Step 6] 신뢰도 및 통계 보정 ---
+    # 실제 만족도(1~5) 가점 및 광고 의심 지수 감점
     trust_score = (details.real_satisfaction_score * 2) - (details.ad_suspicion_index * 15)
     score += trust_score
-
-    # 새로운 도전형 사용자에게는 가보지 않은 곳 가산점
-    if user.is_adventurous and (not history or history.visit_count == 0):
-        score += 20
-
+    
     return max(0, score)

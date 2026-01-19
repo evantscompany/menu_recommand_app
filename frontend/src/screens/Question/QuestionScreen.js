@@ -33,8 +33,10 @@ const QuestionScreen = ({ navigation }) => {
       // [수정] 마지막 답변 완료 시 서버 전송
       setLoading(true);
       try {
-        // [중요] 127.0.0.1 대신 본인의 PC IP 주소를 입력해야 실제 기기에서 접속됩니다.
-        const response = await axios.post('http://192.168.0.9:8000/recommend/', 
+        // const SERVER_IP = ''; ==> 값을 본인 아이피 주소로 변경
+        const SERVER_IP = '192.168.0.38';
+        const PORT = '8000';
+        const response = await axios.post(`http://${SERVER_IP}:${PORT}/recommend/`,
           
         {
           ...newAnswers,

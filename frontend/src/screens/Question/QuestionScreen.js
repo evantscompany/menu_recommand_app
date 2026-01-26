@@ -34,7 +34,7 @@ const QuestionScreen = ({ navigation }) => {
       setLoading(true);
       try {
         // const SERVER_IP = ''; ==> 값을 본인 아이피 주소로 변경
-        const SERVER_IP = '192.168.0.38';
+        const SERVER_IP = '192.168.0.34';
         const PORT = '8000';
         const response = await axios.post(`http://${SERVER_IP}:${PORT}/recommend/`,
           

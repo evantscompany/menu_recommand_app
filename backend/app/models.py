@@ -3,12 +3,13 @@ from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
 
-class Store(Base):
-    __tablename__ = "stores"
+class Menu(Base):
+    """기존 Store에서 Menu로 명칭 변경"""
+    __tablename__ = "menus"
 
     # 고정 정보
-    store_id = Column(Integer, primary_key=True, index=True)
-    store_name = Column(String, nullable=False)
+    menu_id = Column(Integer, primary_key=True, index=True)
+    menu_name = Column(String, nullable=False) # 식당 이름 혹은 메뉴 이름
     category = Column(String)             # 카테고리 (일식, 한식, 중식 등)
     address = Column(String)              # 매장 주소
     phone_number = Column(String)         # 매장 전화번호
@@ -23,15 +24,16 @@ class Store(Base):
     is_lunch_available = Column(Boolean, default=True)
 
     # 관계 설정
-    details = relationship("StoreDetail", back_populates="store", uselist=False)
-    visits = relationship("UserHistory", back_populates="store")
+    details = relationship("MenuDetail", back_populates="menu", uselist=False)
+    visits = relationship("UserHistory", back_populates="menu")
 
 
-class StoreDetail(Base):
-    __tablename__ = "store_details"
+class MenuDetail(Base):
+    """기존 StoreDetail에서 MenuDetail로 명칭 변경"""
+    __tablename__ = "menu_details"
 
     detail_id = Column(Integer, primary_key=True, index=True)
-    store_id = Column(Integer, ForeignKey("stores.store_id"))
+    menu_id = Column(Integer, ForeignKey("menus.menu_id"))
 
     # 수치 기반 데이터 (알고리즘 핵심)
     spicy_level = Column(Integer)        # 맵기 레벨 (1~5)
@@ -46,7 +48,7 @@ class StoreDetail(Base):
     ad_suspicion_index = Column(Float)   # 광고 의심 지수 (0~1)
     real_satisfaction_score = Column(Float) # 실제 만족도 점수 (1~5)
 
-    store = relationship("Store", back_populates="details")
+    menu = relationship("Menu", back_populates="details")
 
 
 class User(Base):
@@ -76,24 +78,40 @@ class User(Base):
 class UserHistory(Base):
     """
     사용자의 방문 기록 및 피드백 저장
-    추천 결과에 대한 사후 피드백(평점, 재방문의사)이 여기에 저장됨
     """
     __tablename__ = "user_histories"
 
     history_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), index=True)
-    store_id = Column(Integer, ForeignKey("stores.store_id"))
+    menu_id = Column(Integer, ForeignKey("menus.menu_id")) # store_id -> menu_id
 
     # 방문 및 피드백 데이터
     last_visit_date = Column(DateTime, default=datetime.utcnow)
     visit_count = Column(Integer, default=1)
     last_eaten_category = Column(String)
     
-    # [추가] 추천 후 피드백 반영용 필드
+    # 추천 후 피드백 반영용 필드
     user_rating = Column(Integer, nullable=True)     # 사용자가 남긴 평점 (1~5)
     is_revisit_intended = Column(Boolean, default=True) # 재방문 의사 여부
-    feedback_comment = Column(String, nullable=True) # 간단한 피드백 (예: "오늘 기분에 딱이었음")
+    feedback_comment = Column(String, nullable=True) # 간단한 피드백
 
     # 관계 설정
-    store = relationship("Store", back_populates="visits")
+    menu = relationship("Menu", back_populates="visits")
     user = relationship("User", back_populates="histories")
+
+class RecommendationFeedback(Base):
+    """
+    추천 시스템의 즉각 피드백 저장 (메뉴 카드 좋아요/싫어요 등)
+    """
+    __tablename__ = "recommendation_feedbacks"
+
+    feedback_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), index=True)
+    menu_name = Column(String, nullable=False)
+    feedback_type = Column(String)
+    category = Column(String)
+    score = Column(Float)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")

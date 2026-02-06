@@ -13,8 +13,10 @@ import { createStackNavigator } from '@react-navigation/stack';
  */
 import LoginScreen from './src/screens/Login/LoginScreen';
 import QuestionScreen from './src/screens/Question/QuestionScreen';
-// [MOD] 결과 출력 화면(ResultScreen) 의존성 추가
 import ResultScreen from './src/screens/Result/ResultScreen';
+import SignUpScreen from './src/screens/Login/SignUpScreen';
+import SignInScreen from './src/screens/Login/SignInScreen';
+
 
 /**
  * @constant {Object} Stack
@@ -39,13 +41,19 @@ export default function App() {
         initialRouteName="Login"
         screenOptions={{ headerShown: false }}
       >
-        {/* [Route] 사용자 인증 화면 */}
+        {/* [Route] 메인 진입 화면 */}
         <Stack.Screen name="Login" component={LoginScreen} />
+        
+        {/* [Route] 로그인 입력 화면 */}
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+
+        {/* [Route] 회원가입 정보 입력 화면 */}
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
         
         {/* [Route] 사용자 성향 분석 질문지 화면 */}
         <Stack.Screen name="Question" component={QuestionScreen} />
 
-        {/* [Route] [ADD] 최종 데이터 기반 추천 결과 화면 */}
+        {/* [Route] 최종 데이터 기반 추천 결과 화면 */}
         <Stack.Screen name="Result" component={ResultScreen} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,6 +1,6 @@
 import re
 
-def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, history=None):
+def calculate_recommendation_score(menu, restaurant_menu, user, daily_inquiry, weather_data, history=None):
     """
     [정밀 튜닝된 추천 알고리즘]
     1. 기본 점수 부여 (0점이 아닌 40점에서 시작)
@@ -22,12 +22,12 @@ def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, hist
     except (ValueError, TypeError, AttributeError):
         numeric_budget = user.lunch_budget_max
 
-    # 예산 초과 시 즉시 제외 (기존 유지)
-    if menu.price_level > numeric_budget:
+    # 예산 초과 시 즉시 제외 (정규화된 가격 정보 사용)
+    if restaurant_menu.price > numeric_budget:
         return 0 
     
     # 예산 안쪽이면 보너스 (가성비 가점)
-    if menu.price_level <= numeric_budget * 0.8:
+    if restaurant_menu.price <= numeric_budget * 0.8:
         score += 10
 
     # 2. 식단 제약 필터링 (감점 폭 완화)

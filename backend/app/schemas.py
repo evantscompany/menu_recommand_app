@@ -1,8 +1,8 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
-# --- [1. 메뉴 상세 정보 스키마] ---
+# --- [1. 메뉴 상세 정보 스키마] --- (기존 유지)
 class MenuDetailBase(BaseModel):
     spicy_level: int
     saltiness_level: int
@@ -19,38 +19,77 @@ class MenuDetail(MenuDetailBase):
         from_attributes = True
 
 
-# --- [2. 메뉴 메인 정보 스키마] ---
+# --- [2. 식당 정보 스키마] ---
+class RestaurantBase(BaseModel):
+    restaurant_name: str
+    address: str
+    phone_number: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    opening_hours: Optional[str] = None
+    rating: float = 0.0
+    image_url: Optional[str] = None
+
+class RestaurantCreate(RestaurantBase):
+    pass
+
+class Restaurant(RestaurantBase):
+    restaurant_id: int
+    
+    class Config:
+        from_attributes = True
+
+# --- [3. 식당-메뉴 연결 스키마 ---
+class RestaurantMenuBase(BaseModel):
+    restaurant_id: int
+    menu_id: int
+    price: int
+    is_available: bool = True
+    special_note: Optional[str] = None
+
+class RestaurantMenuCreate(RestaurantMenuBase):
+    pass
+
+class RestaurantMenu(RestaurantMenuBase):
+    restaurant_menu_id: int
+    restaurant: Restaurant
+    menu: 'Menu'
+    
+    class Config:
+        from_attributes = True
+
+# --- [4. 메뉴 메인 정보 스키마] --- (정규화 후)
 class MenuBase(BaseModel):
     menu_name: str
     category: str
-    address: Optional[str] = None
-    phone_number: Optional[str] = None
     image_url: Optional[str] = None
-    price_level: int
     is_lunch_available: bool = True
-    
-    # [수정] 아래 필드들을 Optional로 변경하여 에러 방지
     matching_weather: Optional[str] = None
     matching_mood: Optional[str] = None
-    suitable_ground_size: Optional[int] = None # int -> Optional[int]
+    suitable_ground_size: Optional[int] = None 
     is_quick_meal: Optional[bool] = True
 
 class MenuCreate(MenuBase):
-    """메뉴 데이터를 처음 등록할 때 사용하는 규격"""
     details: Optional[MenuDetailBase] = None
 
 class Menu(MenuBase):
-    """프론트엔드로 기본 데이터를 보낼 때 규격 (ID 포함)"""
     menu_id: int
     details: Optional[MenuDetail] = None
+    restaurant_menus: Optional[List[RestaurantMenu]] = None
 
     class Config:
         from_attributes = True
 
 
-# --- [3. 사용자 프로필 스키마] ---
+# --- [5. 사용자 관련 스키마] --- (필드 추가 및 분리)
+
 class UserBase(BaseModel):
     username: str
+    email: EmailStr  # [추가] 이메일 필드
+    nickname: str    # [추가] 닉네임 필드
+
+class UserProfileBase(BaseModel):
+    """유저 성향 데이터 (기존 UserBase 로직 유지)"""
     dietary_label: str = "none"         
     allergies: Optional[str] = None     
     spicy_threshold: int = 3            
@@ -58,23 +97,34 @@ class UserBase(BaseModel):
     lunch_budget_max: int = 12000       
     is_adventurous: bool = True         
 
-class UserCreate(UserBase):
-    """회원가입 시 사용하는 규격"""
-    pass
+class UserCreate(UserBase, UserProfileBase):
+    """회원가입 시 사용하는 규격 (비밀번호 추가)"""
+    password: str
+
+class UserLogin(BaseModel):
+    """로그인 전용 스키마 (추가)"""
+    username: str
+    password: str
 
 class User(UserBase):
-    """사용자 정보를 조회할 때 반환하는 규격"""
+    """사용자 조회용 규격"""
     user_id: int
     created_at: datetime
 
     class Config:
         from_attributes = True
 
+class Token(BaseModel):
+    """로그인 결과 발급할 토큰 규격 (추가)"""
+    access_token: str
+    token_type: str
+    username: str
+    nickname: str  # ← [추가] 닉네임 필드
 
-# --- [4. 질문 및 피드백 스키마] ---
+
+# --- [4. 질문 및 피드백 스키마] --- (기존 유지)
 
 class DailyInquiry(BaseModel):
-    """매일 앱 접속 시 던지는 질문 답변 규격"""
     dietary_restriction : str
     spicy_level : str
     budget_range : str
@@ -83,8 +133,7 @@ class DailyInquiry(BaseModel):
     city: str = "Seoul"
 
 class FeedbackCreate(BaseModel):
-    """추천 메뉴 카드에 대해 즉시 남기는 피드백"""
-    user_id: int
+    # 인증된 유저의 토큰에서 ID를 가져오므로 user_id 필드 제외 가능 (프론트 전달용)
     menu_name: str
     feedback_type: str       
     category: str
@@ -92,28 +141,26 @@ class FeedbackCreate(BaseModel):
 
 class FeedbackResponse(FeedbackCreate):
     feedback_id: int
+    user_id: int  # 응답에는 포함
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 class FeedbackUpdate(BaseModel):
-    """식사 후 방문 기록(History) 업데이트용"""
     user_rating: int 
     is_revisit_intended: bool
     feedback_comment: Optional[str] = None
 
 
-# --- [5. 최종 추천 결과 전용 스키마] ---
+# --- [5. 최종 추천 결과 전용 스키마] --- (기존 유지)
 
 class MenuRecommendationDetail(BaseModel):
-    """프론트엔드 이미지 카드 하단 상세 데이터"""
     spicy_level: int
     texture: str
     rating: float
 
 class MenuRecommendation(BaseModel):
-    """프론트엔드 이미지 요구사항을 반영한 최종 응답 규격"""
     menu_id: int
     menu_name: str
     category: str
@@ -121,6 +168,7 @@ class MenuRecommendation(BaseModel):
     match_rate: int
     description: str
     details: MenuRecommendationDetail
+    restaurant_info: Optional[dict] = None  # 식당 정보 필드 추가
 
     class Config:
         from_attributes = True

@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 import app.models as models
-# [수정] 모든 엔드포인트를 app.api.endpoints에서 일관되게 가져옵니다.
-from app.api.endpoints import user, recommendation, menu 
+# [수정] auth 라우터를 추가로 불러옵니다.
+from app.api.endpoints import user, recommendation, menu, auth, restaurants 
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -23,7 +23,19 @@ app.add_middleware(
 def home():
     return {"message": "서버가 정상적으로 실행되었습니다. 오늘 점심은 메추리가 책임집니다!"}
 
-# [수정] 라우터 등록: prefix를 /menus로 변경하여 일관성을 맞춥니다.
+# --- [라우터 등록] ---
+
+# 1. 인증 및 계정 관련 (로그인, 회원가입 등)
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+
+# 2. 메뉴 관련 (메뉴 등록, 조회 등)
 app.include_router(menu.router, prefix="/menus", tags=["Menus"])
+
+# 3. 사용자 정보 관련 (기존 user 라우터)
 app.include_router(user.router, prefix="/users", tags=["Users"])
+
+# 4. 추천 시스템 관련
 app.include_router(recommendation.router, prefix="/recommend", tags=["Recommendation"])
+
+# 5. 식당 관련 (신규 추가)
+app.include_router(restaurants.router, prefix="/restaurants", tags=["Restaurants"])

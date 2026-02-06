@@ -1,11 +1,10 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime
+from .core.security import get_password_hash
 
-# --- [1. 메뉴 관련 (Menu) ] ---
-
+# --- [1. 메뉴 관련 (Menu) ] --- (로직 동일)
 def create_menu(db: Session, menu: schemas.MenuCreate):
-    """메뉴 기본 정보 및 상세 정보를 함께 저장 (Store -> Menu)"""
     db_menu = models.Menu(
         menu_name=menu.menu_name,
         category=menu.category,
@@ -23,7 +22,6 @@ def create_menu(db: Session, menu: schemas.MenuCreate):
     db.commit()
     db.refresh(db_menu)
 
-    # 상세 데이터(MenuDetail)가 있다면 추가 저장
     if menu.details:
         db_detail = models.MenuDetail(
             menu_id=db_menu.menu_id,
@@ -35,30 +33,50 @@ def create_menu(db: Session, menu: schemas.MenuCreate):
     return db_menu
 
 def get_menus(db: Session, skip: int = 0, limit: int = 100):
-    """모든 메뉴 조회"""
     return db.query(models.Menu).offset(skip).limit(limit).all()
 
 
-# --- [2. 사용자 관련 (User) ] ---
+# --- [2. 사용자 관련 (UserAccount & Profile) ] ---
+
+def get_user_by_username(db: Session, username: str):
+    """로그인 시 아이디로 유저를 찾기 위한 함수 (추가)"""
+    return db.query(models.UserAccount).filter(models.UserAccount.username == username).first()
 
 def create_user(db: Session, user: schemas.UserCreate):
-    """최초 가입 시 사용자의 성향 저장"""
-    db_user = models.User(**user.dict())
-    db.add(db_user)
+    # 1. 계정 정보 생성 시 비밀번호를 암호화해서 저장!
+    db_account = models.UserAccount(
+        username=user.username,
+        email=user.email,
+        nickname=user.nickname,  # ← [추가] 닉네임 필드
+        hashed_password=get_password_hash(user.password) # <--- 평문 대신 해시값 저장
+    )
+    db.add(db_account)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_account)
+
+    # 2. 성향 정보 생성 (user_profiles 테이블)
+    db_profile = models.UserProfile(
+        user_id=db_account.user_id,
+        dietary_label=user.dietary_label,
+        allergies=user.allergies,
+        spicy_threshold=user.spicy_threshold,
+        saltiness_preference=user.saltiness_preference,
+        lunch_budget_max=user.lunch_budget_max,
+        is_adventurous=user.is_adventurous
+    )
+    db.add(db_profile)
+    db.commit()
+    
+    return db_account
 
 def get_user(db: Session, user_id: int):
-    """사용자 ID로 조회"""
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
+    """사용자 ID로 계정과 프로필을 함께 조회"""
+    return db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
 
 
-# --- [3. 피드백 및 히스토리 관련 (History & Feedback) ] ---
+# --- [3. 피드백 및 히스토리 관련 (History & Feedback) ] --- (연결 테이블명 수정)
 
 def create_user_history(db: Session, user_id: int, menu_id: int, category: str):
-    """추천된 메뉴를 사용자가 '선택'했을 때 방문 기록 생성"""
-    # 기존 기록이 있는지 확인
     db_history = db.query(models.UserHistory).filter(
         models.UserHistory.user_id == user_id,
         models.UserHistory.menu_id == menu_id
@@ -79,8 +97,8 @@ def create_user_history(db: Session, user_id: int, menu_id: int, category: str):
     db.refresh(db_history)
     return db_history
 
+# update_user_feedback 로직 동일
 def update_user_feedback(db: Session, history_id: int, feedback: schemas.FeedbackUpdate):
-    """식사 후 별점 및 재방문 의사 업데이트"""
     db_history = db.query(models.UserHistory).filter(models.UserHistory.history_id == history_id).first()
     if db_history:
         db_history.user_rating = feedback.user_rating
@@ -91,7 +109,6 @@ def update_user_feedback(db: Session, history_id: int, feedback: schemas.Feedbac
     return db_history
 
 def get_user_history_for_menu(db: Session, user_id: int, menu_id: int):
-    """특정 사용자가 특정 메뉴에 대해 가졌던 과거 기록 조회 (알고리즘 주입용)"""
     return db.query(models.UserHistory).filter(
         models.UserHistory.user_id == user_id,
         models.UserHistory.menu_id == menu_id
@@ -101,14 +118,14 @@ def get_user_history_for_menu(db: Session, user_id: int, menu_id: int):
 # --- [4. 삭제 관련] ---
 
 def delete_user(db: Session, user_id: int):
-    db_user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    db_user = db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
     if db_user:
+        # UserAccount를 삭제하면 Cascade 설정에 따라 Profile도 같이 삭제되도록 구성 가능
         db.delete(db_user)
         db.commit()
     return db_user
 
 def delete_menu(db: Session, menu_id: int):
-    """식당(메뉴) 삭제"""
     db_menu = db.query(models.Menu).filter(models.Menu.menu_id == menu_id).first()
     if db_menu:
         db.delete(db_menu)

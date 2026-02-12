@@ -1,4 +1,10 @@
 {
+  "name": "frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@react-navigation/native": "^7.1.26",

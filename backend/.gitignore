@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 venv/
-
+node_modules/
 # Database (로컬 DB는 각자 생성해서 써야 꼬이지 않습니다)
 restaurant_app.db
 

@@ -1,29 +1,41 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# 상대 경로(.) 대신 절대 경로 형식으로 수정하여 인식률을 높입니다.
 from app.database import engine
 import app.models as models
-from app.api.endpoints import store, user, recommendation 
+# [수정] auth 라우터를 추가로 불러옵니다.
+from app.api.endpoints import user, recommendation, menu, auth, restaurants 
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="식당추천 서비스 메추리")
 
-# [중요] 프론트엔드 통신을 위한 CORS 설정 추가
+# CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 도메인 허용 (테스트용)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # GET, POST, OPTIONS 등 모두 허용
-    allow_headers=["*"],  # 모든 헤더 허용
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
 def home():
     return {"message": "서버가 정상적으로 실행되었습니다. 오늘 점심은 메추리가 책임집니다!"}
 
-# 라우터 등록
-app.include_router(store.router, prefix="/stores", tags=["Stores"])
+# --- [라우터 등록] ---
+
+# 1. 인증 및 계정 관련 (로그인, 회원가입 등)
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+
+# 2. 메뉴 관련 (메뉴 등록, 조회 등)
+app.include_router(menu.router, prefix="/menus", tags=["Menus"])
+
+# 3. 사용자 정보 관련 (기존 user 라우터)
 app.include_router(user.router, prefix="/users", tags=["Users"])
+
+# 4. 추천 시스템 관련
 app.include_router(recommendation.router, prefix="/recommend", tags=["Recommendation"])
+
+# 5. 식당 관련 (신규 추가)
+app.include_router(restaurants.router, prefix="/restaurants", tags=["Restaurants"])

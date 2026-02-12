@@ -1,65 +1,85 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime
+from .core.security import get_password_hash
 
-# --- [1. 식당 관련 (Store) ] ---
-
-def create_store(db: Session, store: schemas.StoreCreate):
-    """식당 기본 정보 및 상세 정보를 함께 저장"""
-    db_store = models.Store(
-        store_name=store.store_name,
-        category=store.category,
-        address=store.address,
-        phone_number=store.phone_number,
-        image_url=store.image_url,
-        price_level=store.price_level,
-        is_lunch_available=store.is_lunch_available,
-        matching_weather=store.matching_weather,
-        matching_mood=store.matching_mood,
-        suitable_ground_size=store.suitable_ground_size,
-        is_quick_meal=store.is_quick_meal
+# --- [1. 메뉴 관련 (Menu) ] --- (로직 동일)
+def create_menu(db: Session, menu: schemas.MenuCreate):
+    db_menu = models.Menu(
+        menu_name=menu.menu_name,
+        category=menu.category,
+        address=menu.address,
+        phone_number=menu.phone_number,
+        image_url=menu.image_url,
+        price_level=menu.price_level,
+        is_lunch_available=menu.is_lunch_available,
+        matching_weather=menu.matching_weather,
+        matching_mood=menu.matching_mood,
+        suitable_ground_size=menu.suitable_ground_size,
+        is_quick_meal=menu.is_quick_meal
     )
-    db.add(db_store)
+    db.add(db_menu)
     db.commit()
-    db.refresh(db_store)
+    db.refresh(db_menu)
 
-    # 상세 데이터(StoreDetail)가 있다면 추가 저장
-    if store.details:
-        db_detail = models.StoreDetail(
-            store_id=db_store.store_id,
-            **store.details.dict()
+    if menu.details:
+        db_detail = models.MenuDetail(
+            menu_id=db_menu.menu_id,
+            **menu.details.dict()
         )
         db.add(db_detail)
         db.commit()
     
-    return db_store
+    return db_menu
 
-def get_stores(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Store).offset(skip).limit(limit).all()
+def get_menus(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Menu).offset(skip).limit(limit).all()
 
 
-# --- [2. 사용자 관련 (User) ] ---
+# --- [2. 사용자 관련 (UserAccount & Profile) ] ---
+
+def get_user_by_username(db: Session, username: str):
+    """로그인 시 아이디로 유저를 찾기 위한 함수 (추가)"""
+    return db.query(models.UserAccount).filter(models.UserAccount.username == username).first()
 
 def create_user(db: Session, user: schemas.UserCreate):
-    """최초 가입 시 사용자의 성향(맵부심, 예산 등) 저장"""
-    db_user = models.User(**user.dict())
-    db.add(db_user)
+    # 1. 계정 정보 생성 시 비밀번호를 암호화해서 저장!
+    db_account = models.UserAccount(
+        username=user.username,
+        email=user.email,
+        nickname=user.nickname,  # ← [추가] 닉네임 필드
+        hashed_password=get_password_hash(user.password) # <--- 평문 대신 해시값 저장
+    )
+    db.add(db_account)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_account)
+
+    # 2. 성향 정보 생성 (user_profiles 테이블)
+    db_profile = models.UserProfile(
+        user_id=db_account.user_id,
+        dietary_label=user.dietary_label,
+        allergies=user.allergies,
+        spicy_threshold=user.spicy_threshold,
+        saltiness_preference=user.saltiness_preference,
+        lunch_budget_max=user.lunch_budget_max,
+        is_adventurous=user.is_adventurous
+    )
+    db.add(db_profile)
+    db.commit()
+    
+    return db_account
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
+    """사용자 ID로 계정과 프로필을 함께 조회"""
+    return db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
 
 
-# --- [3. 피드백 및 히스토리 관련 (History & Feedback) ] ---
+# --- [3. 피드백 및 히스토리 관련 (History & Feedback) ] --- (연결 테이블명 수정)
 
-def create_user_history(db: Session, user_id: int, store_id: int, category: str):
-    """추천된 식당을 사용자가 '선택'했을 때 방문 기록 생성"""
-    # 기존 기록이 있는지 확인
+def create_user_history(db: Session, user_id: int, menu_id: int, category: str):
     db_history = db.query(models.UserHistory).filter(
         models.UserHistory.user_id == user_id,
-        models.UserHistory.store_id == store_id
+        models.UserHistory.menu_id == menu_id
     ).first()
 
     if db_history:
@@ -68,7 +88,7 @@ def create_user_history(db: Session, user_id: int, store_id: int, category: str)
     else:
         db_history = models.UserHistory(
             user_id=user_id,
-            store_id=store_id,
+            menu_id=menu_id,
             last_eaten_category=category
         )
         db.add(db_history)
@@ -77,8 +97,8 @@ def create_user_history(db: Session, user_id: int, store_id: int, category: str)
     db.refresh(db_history)
     return db_history
 
+# update_user_feedback 로직 동일
 def update_user_feedback(db: Session, history_id: int, feedback: schemas.FeedbackUpdate):
-    """식사 후 별점 및 재방문 의사 업데이트 (알고리즘 학습의 핵심)"""
     db_history = db.query(models.UserHistory).filter(models.UserHistory.history_id == history_id).first()
     if db_history:
         db_history.user_rating = feedback.user_rating
@@ -88,26 +108,26 @@ def update_user_feedback(db: Session, history_id: int, feedback: schemas.Feedbac
         db.refresh(db_history)
     return db_history
 
-def get_user_history_for_store(db: Session, user_id: int, store_id: int):
-    """특정 사용자가 특정 식당에 대해 가졌던 과거 기록 조회 (알고리즘 주입용)"""
+def get_user_history_for_menu(db: Session, user_id: int, menu_id: int):
     return db.query(models.UserHistory).filter(
         models.UserHistory.user_id == user_id,
-        models.UserHistory.store_id == store_id
+        models.UserHistory.menu_id == menu_id
     ).first()
 
 
-# --유저랑 상점 삭제 코드 ---
+# --- [4. 삭제 관련] ---
 
 def delete_user(db: Session, user_id: int):
-    db_user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    db_user = db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
     if db_user:
+        # UserAccount를 삭제하면 Cascade 설정에 따라 Profile도 같이 삭제되도록 구성 가능
         db.delete(db_user)
         db.commit()
     return db_user
 
-def delete_store(db: Session, store_id: int):
-    db_store = db.query(models.Store).filter(models.Store.store_id == store_id).first()
-    if db_store:
-        db.delete(db_store)
+def delete_menu(db: Session, menu_id: int):
+    db_menu = db.query(models.Menu).filter(models.Menu.menu_id == menu_id).first()
+    if db_menu:
+        db.delete(db_menu)
         db.commit()
-    return db_store
+    return db_menu

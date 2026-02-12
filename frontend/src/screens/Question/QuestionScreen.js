@@ -8,11 +8,58 @@ import axios from 'axios';
 import { styles } from './QuestionStyle'; 
 
 const questions = [
-  { key: "dietary_label", category: "식단 제한", question: "원하는 식단을 고르세요", options: ["none", "vegan", "diet", "pesco", "lactose_free"] }, // 명세서 값으로 매핑
-  { key: "spicy_threshold", category: "미각 성향", question: "매운맛 선호도 (1~5)", options: ["1", "2", "3", "4", "5"] },
-  { key: "saltiness_preference", category: "미각 성향", question: "선호하는 간 세기 (1~5)", options: ["1", "2", "3", "4", "5"] },
-  { key: "lunch_budget_max", category: "경제적 성향", question: "한 끼 지출 가능 예산 상한선", type: "INPUT", placeholder: "숫자만 입력 (예: 15000)" },
-  { key: "is_adventurous", category: "탐험 성향", question: "새로운 메뉴 도전을 좋아하시나요?", options: ["예(True)", "아니오(False)"] }
+  { 
+    key: "dietary_label", 
+    category: "식단 제한", 
+    question: "원하는 식단을 고르세요", 
+    options: [
+      { label: "뭐든 잘 먹음", value: "none" },
+      { label: "비건(채식)", value: "vegan" },
+      { label: "다이어터", value: "diet" },
+      { label: "페스코(해산물)", value: "pesco" },
+      { label: "유당 불내증", value: "lactose_free" }
+    ] 
+  },
+  { 
+    key: "spicy_threshold", 
+    category: "미각 성향", 
+    question: "매운 걸 얼마나 잘 드시나요?", 
+    options: [
+      { label: "1. 진라면 순한맛", value: "1" },
+      { label: "2. 신라면", value: "2" },
+      { label: "3. 틈새라면", value: "3" },
+      { label: "4. 불닭볶음면", value: "4" },
+      { label: "5. 핵불닭", value: "5" }
+    ] 
+  },
+  { 
+    key: "saltiness_preference", 
+    category: "미각 성향", 
+    question: "평소 선호하는 간 세기는?", 
+    options: [
+      { label: "아주 싱겁게", value: "1" },
+      { label: "삼삼하게", value: "2" },
+      { label: "보통", value: "3" },
+      { label: "짭짤하게", value: "4" },
+      { label: "짜고 강한 맛", value: "5" }
+    ] 
+  },
+  { 
+    key: "lunch_budget_max", 
+    category: "경제적 성향", 
+    question: "한 끼 지출 가능 예산 상한선", 
+    type: "INPUT", 
+    placeholder: "숫자만 입력 (예: 12000)" 
+  },
+  { 
+    key: "is_adventurous", 
+    category: "탐험 성향", 
+    question: "새로운 메뉴 도전을 좋아하시나요?", 
+    options: [
+      { label: "새로운 맛있는 걸 찾자!", value: "예(True)" },
+      { label: "내가 아는 맛이 더 좋아", value: "아니오(False)" }
+    ] 
+  }
 ];
 
 const QuestionScreen = ({ route, navigation }) => { 
@@ -28,11 +75,14 @@ const QuestionScreen = ({ route, navigation }) => {
     const currentQuestion = questions[currentStep];
     let finalValue = value;
 
-    // [데이터 변환] 명세서 타입에 맞게 가공
-    if (currentQuestion.key === "lunch_budget_max") finalValue = parseInt(value) || 0;
-    if (currentQuestion.key === "is_adventurous") finalValue = value.includes("예");
-    if (currentQuestion.key === "spicy_threshold" || currentQuestion.key === "saltiness_preference") finalValue = parseInt(value);
-
+    // [데이터 변환]
+    if (currentQuestion.key === "lunch_budget_max") {
+      finalValue = parseInt(value, 10) || 12000; // 숫자(int)로 변환
+    } else if (currentQuestion.key === "is_adventurous") {
+      finalValue = value.includes("예"); // true/false(bool)로 변환
+    } else if (currentQuestion.key === "spicy_threshold" || currentQuestion.key === "saltiness_preference") {
+      finalValue = parseInt(value, 10); // 숫자(int)로 변환
+    }
     const newAnswers = { ...answers, [currentQuestion.key]: finalValue };
     
     if (currentStep < questions.length - 1) {
@@ -42,6 +92,7 @@ const QuestionScreen = ({ route, navigation }) => {
     } else {
       // 서버 전송 로직
       submitSurvey(newAnswers);
+
     }
   };
 
@@ -53,42 +104,59 @@ const QuestionScreen = ({ route, navigation }) => {
       allergies: ""      // 선택사항이므로 일단 빈값 처리
     };
 
+    // // =========================================================
+    // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
+    // // ---------------------------------------------------------
+    // console.log('[MOCK] 회원가입 통합 데이터:', requestData);
+    // Alert.alert("테스트", "설문이 완료되었습니다. 결과 화면으로 이동합니다.");
+    // navigation.navigate('Result', { userSurvey: requestData, recommendations: [] });
+    // // =========================================================
+
+
+
     // =========================================================
-    // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
-    // ---------------------------------------------------------
-    console.log('[MOCK] 회원가입 통합 데이터:', requestData);
-    Alert.alert("테스트", "설문이 완료되었습니다. 결과 화면으로 이동합니다.");
-    navigation.navigate('Result', { userSurvey: requestData, recommendations: [] });
-    // =========================================================
-
-
-
-    /* // =========================================================
     // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/signup 회원가입 데이터 전송
     // ---------------------------------------------------------
     setLoading(true);
     try {
-      const SERVER_IP = '192.168.0.38'; // 백엔드 서버 IP
+      const SERVER_IP = '192.168.0.38';
       const PORT = '8000';
       
-      // 명세서에 따른 회원가입 엔드포인트 호출
+      // 1단계: 회원가입 JSON 방식
       const response = await axios.post(`http://${SERVER_IP}:${PORT}/api/auth/signup`, requestData);
       
       if (response.status === 201 || response.status === 200) {
-        Alert.alert("성공", "회원가입 및 취향 분석이 완료되었습니다!");
-        navigation.navigate('Result', { 
-          userSurvey: requestData, 
-          recommendations: response.data 
-        });
+        
+        // 백엔드는 OAuth2PasswordRequestForm을 사용함
+        // 따라서 반드시 URLSearchParams 또는 FormData 형식을 써야 합니다.
+        const params = new URLSearchParams();
+        params.append('username', requestData.username);
+        params.append('password', requestData.password);
+
+        const loginRes = await axios.post(
+          `http://${SERVER_IP}:${PORT}/api/auth/login`,
+          params, // JSON이 아닌 파라미터 형태로 전송
+          { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+
+        if (loginRes.status === 200) {
+          const { access_token } = loginRes.data; // 확인 완료
+          
+          Alert.alert("성공", "회원가입 및 취향 분석이 완료되었습니다!");
+          navigation.navigate('Result', { 
+            userSurvey: requestData, 
+            access_token: access_token 
+          });
+        }
       }
     } catch (error) {
-      console.error("[Network Error]:", error);
-      Alert.alert("가입 실패", error.response?.data?.message || "서버 통신 중 오류가 발생했습니다.");
+      console.error("[Network Error]:", error.response?.data || error);
+      Alert.alert("가입 실패", "새로운 아이디로 다시 시도해 주세요.");
     } finally {
       setLoading(false);
     }
     // =========================================================
-    */
+
   };
 
   // 렌더링 헬퍼 변수
@@ -142,8 +210,12 @@ const QuestionScreen = ({ route, navigation }) => {
               ) : (
                 <View style={styles.optionsContainer}>
                   {currentQ.options.map((option, index) => (
-                    <TouchableOpacity key={index} style={styles.optionButton} onPress={() => handleAnswer(option)}>
-                      <Text style={styles.optionText}>{option}</Text>
+                    <TouchableOpacity 
+                      key={index} 
+                      style={styles.optionButton} 
+                      onPress={() => handleAnswer(option.value)}
+                    >
+                      <Text style={styles.optionText}>{option.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>

@@ -1,86 +1,169 @@
-/**
- * @file QuestionStyle.js
- * @description QuestionScreen 전용 외부 스타일 시트
- */
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 
-import { StyleSheet, Platform } from 'react-native';
+// 디바이스 화면 너비 기준으로 반응형 패딩 계산
+const { width, height } = Dimensions.get('window');
+const cardHeight = height * 0.6; // 화면 높이의 60% 정도로 카드 높이 고정
 
 export const styles = StyleSheet.create({
+  // [Container] 전체 화면 스타일 (다크 테마 배경)
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingHorizontal: 20,
-    justifyContent: 'center',
+    backgroundColor: '#0F172A', 
   },
-  progressContainer: {
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40, // 하단 여백 확보
+  },
+  
+  // [Loading State] 로딩 화면 스타일
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+  },
+  loadingText: {
+    marginTop: 24,
+    color: '#94A3B8',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.5,
+  },
+
+  // [Header Area] 상단 진행 정보 및 프로그레스 바
+  headerArea: {
     marginBottom: 20,
+  },
+  stepInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 12,
+  },
+  stepText: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '900',
+  },
+  totalStepText: {
+    color: '#64748B',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  progressBarBg: {
+    height: 6, // 조금 더 슬림하게 변경
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#6366F1', // Primary Brand Color
+    borderRadius: 3,
+  },
+
+  // [Card Wrapper] 카드를 화면 수직 중앙에 위치시키기 위한 래퍼
+  cardWrapper: {
+    flex: 1,
+    justifyContent: 'center', // 수직 중앙 정렬 (핵심!)
     alignItems: 'center',
   },
-  progressText: {
-    fontSize: 16,
-    color: '#868E96',
-    fontWeight: '700',
+
+  // [Main Card] 질문 카드 스타일 (고정 높이 + 내부 중앙 정렬)
+  cardContainer: {
+    width: '100%',
+    height: cardHeight, // [중요] 모든 질문에서 동일한 높이 유지 (세련미 UP)
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28, // 더 부드러운 곡률
+    paddingHorizontal: 30,
+    paddingVertical: 40,
+    justifyContent: 'center', // [중요] 카드 내부 콘텐츠 수직 중앙 정렬
+    alignItems: 'center', // 가로 중앙 정렬
+    // 고급스러운 그림자 효과 (Elevation & Shadow)
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
-  categoryText: {
+  
+  // [Content Elements] 내부 텍스트 및 요소 스타일
+  categoryBadge: {
+    color: '#6366F1',
+    fontWeight: '800',
+    fontSize: 13,
+    marginBottom: 16,
     textAlign: 'center',
-    color: '#007AFF',
-    fontWeight: 'bold',
-    marginBottom: 5,
+    letterSpacing: 1,
+    textTransform: 'uppercase', // 대문자로 변환하여 뱃지 느낌 강조
+    backgroundColor: 'rgba(99, 102, 241, 0.1)', // 배경색 추가
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   questionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#212529',
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 40, // 질문과 선택지 사이 여백 확보
+    lineHeight: 36,
+    letterSpacing: -0.5,
   },
-  /* [ADD] 예산 입력창 전용 스타일 */
+
+  // [Input Type] 주관식 입력 스타일
   inputWrapper: {
     width: '100%',
     alignItems: 'center',
-    // 웹 브라우저 상호작용 우선순위 확보
-    zIndex: 999, 
   },
   budgetInput: {
-    backgroundColor: '#FFFFFF',
-    width: '90%',
-    padding: 18,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    fontSize: 18,
+    backgroundColor: '#F1F5F9',
+    width: '100%',
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    fontSize: 20,
+    color: '#1E293B',
     textAlign: 'center',
     marginBottom: 20,
-    // 웹 브라우저용 포커스 아웃라인 제거
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      },
-    }),
+    fontWeight: 'bold',
   },
-  /* [MOD] 확인 버튼 전용 스타일 */
   confirmButton: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-    width: '90%',
+    backgroundColor: '#6366F1',
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
   },
   confirmButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '800',
+    fontSize: 16,
   },
-  /* 기존 옵션 버튼 스타일 */
+
+  // [Option Type] 객관식 선택지 스타일
+  optionsContainer: {
+    width: '100%',
+  },
   optionButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 18,
-    borderRadius: 12,
+    backgroundColor: '#F8FAFC', // 아주 연한 회색 배경
+    paddingVertical: 20,
+    borderRadius: 18,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#DEE2E6',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0', // 은은한 테두리
     alignItems: 'center',
+    justifyContent: 'center',
   },
   optionText: {
-    fontSize: 17,
-    color: '#495057',
-    fontWeight: '500',
+    fontSize: 16,
+    color: '#334155',
+    fontWeight: '700', // 글씨체 조금 더 두껍게
+    letterSpacing: -0.3,
   },
 });

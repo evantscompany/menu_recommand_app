@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Alert, ActivityIndicator, SafeAreaView } from 'react-native';
 import axios from 'axios'; 
+import { API_ENDPOINTS } from '../../Api/config';
 import { styles } from './QuestionStyle'; 
 
 const questions = [
@@ -106,55 +107,53 @@ const QuestionScreen = ({ route, navigation }) => {
 
     // // =========================================================
     // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
-    // // ---------------------------------------------------------
-    // console.log('[MOCK] 회원가입 통합 데이터:', requestData);
-    // Alert.alert("테스트", "설문이 완료되었습니다. 결과 화면으로 이동합니다.");
-    // navigation.navigate('Result', { userSurvey: requestData, recommendations: [] });
-    // // =========================================================
+    // ---------------------------------------------------------
+    console.log('[MOCK] 회원가입 통합 데이터:', requestData);
+    Alert.alert("테스트", "설문이 완료되었습니다. 결과 화면으로 이동합니다.");
+    navigation.navigate('Result', { userSurvey: requestData, recommendations: [] });
+    // =========================================================
 
 
 
     // =========================================================
     // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/signup 회원가입 데이터 전송
     // ---------------------------------------------------------
-    setLoading(true);
-    try {
-      const SERVER_IP = '192.168.0.38';
-      const PORT = '8000';
+    // setLoading(true);
+    // try {
+    //   // 1단계 : 회원가입 JSON 방식
+    //   const response = await axios.post(API_ENDPOINTS.SIGNUP, requestData);
       
-      // 1단계: 회원가입 JSON 방식
-      const response = await axios.post(`http://${SERVER_IP}:${PORT}/api/auth/signup`, requestData);
-      
-      if (response.status === 201 || response.status === 200) {
+    //   if (response.status === 201 || response.status === 200) {
         
-        // 백엔드는 OAuth2PasswordRequestForm을 사용함
-        // 따라서 반드시 URLSearchParams 또는 FormData 형식을 써야 합니다.
-        const params = new URLSearchParams();
-        params.append('username', requestData.username);
-        params.append('password', requestData.password);
+    //     // 백엔드는 OAuth2PasswordRequestForm을 사용함
+    //     // 따라서 반드시 URLSearchParams 또는 FormData 형식을 써야 합니다.
+    //     const params = new URLSearchParams();
+    //     params.append('username', requestData.username);
+    //     params.append('password', requestData.password);
 
-        const loginRes = await axios.post(
-          `http://${SERVER_IP}:${PORT}/api/auth/login`,
-          params, // JSON이 아닌 파라미터 형태로 전송
-          { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-        );
+    //     // 2단계 : 자동 로그인 로직
+    //     const loginRes = await axios.post(
+    //       API_ENDPOINTS.LOGIN,
+    //       params, // JSON이 아닌 파라미터 형태로 전송
+    //       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    //     );
 
-        if (loginRes.status === 200) {
-          const { access_token } = loginRes.data; // 확인 완료
+    //     if (loginRes.status === 200) {
+    //       const { access_token } = loginRes.data; // 확인 완료
           
-          Alert.alert("성공", "회원가입 및 취향 분석이 완료되었습니다!");
-          navigation.navigate('Result', { 
-            userSurvey: requestData, 
-            access_token: access_token 
-          });
-        }
-      }
-    } catch (error) {
-      console.error("[Network Error]:", error.response?.data || error);
-      Alert.alert("가입 실패", "새로운 아이디로 다시 시도해 주세요.");
-    } finally {
-      setLoading(false);
-    }
+    //       Alert.alert("성공", "회원가입 및 취향 분석이 완료되었습니다!");
+    //       navigation.navigate('Result', { 
+    //         userSurvey: requestData, 
+    //         access_token: access_token 
+    //       });
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error("[Network Error]:", error.response?.data || error);
+    //   Alert.alert("가입 실패", "새로운 아이디로 다시 시도해 주세요.");
+    // } finally {
+    //   setLoading(false);
+    // }
     // =========================================================
 
   };

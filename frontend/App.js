@@ -16,6 +16,9 @@ import QuestionScreen from './src/screens/Question/QuestionScreen';
 import ResultScreen from './src/screens/Result/ResultScreen';
 import SignUpScreen from './src/screens/Login/SignUpScreen';
 import SignInScreen from './src/screens/Login/SignInScreen';
+import HomeScreen from './src/screens/Home/HomeScreen';
+import MyPageScreen from './src/screens/MyPage/MyPageScreen';
+import MapScreen from './src/screens/Map/MapScreen';
 
 
 /**
@@ -55,6 +58,16 @@ export default function App() {
 
         {/* [Route] 최종 데이터 기반 추천 결과 화면 */}
         <Stack.Screen name="Result" component={ResultScreen} />
+
+        {/* [Route] 메인 홈 화면 */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+
+        {/* [Route] 마이페이지 화면 */}
+        <Stack.Screen name="MyPage" component={MyPageScreen} />
+
+        {/* [Route] 주변식당 화면 */}
+        <Stack.Screen name="Map" component={MapScreen} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );

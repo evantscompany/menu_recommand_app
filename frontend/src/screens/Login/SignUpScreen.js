@@ -30,7 +30,7 @@ const SignUpScreen = ({ navigation }) => {
   const handleNextStep = () => {
     // 필수 입력값 확인
     if (!username || !nickname || !email || !password) {
-      Alert.alert("알림", "모든 항목을 입력해야 다음 단계로 이동이 가능합니다.");
+      Alert.alert("알림", "모든 항목을 입력해야 회원가입이 가능합니다.");
       return;
     }
 

@@ -19,50 +19,12 @@ class MenuDetail(MenuDetailBase):
         from_attributes = True
 
 
-# --- [2. 식당 정보 스키마] ---
-class RestaurantBase(BaseModel):
-    restaurant_name: str
-    address: str
-    phone_number: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    opening_hours: Optional[str] = None
-    rating: float = 0.0
-    image_url: Optional[str] = None
-
-class RestaurantCreate(RestaurantBase):
-    pass
-
-class Restaurant(RestaurantBase):
-    restaurant_id: int
-    
-    class Config:
-        from_attributes = True
-
-# --- [3. 식당-메뉴 연결 스키마 ---
-class RestaurantMenuBase(BaseModel):
-    restaurant_id: int
-    menu_id: int
-    price: int
-    is_available: bool = True
-    special_note: Optional[str] = None
-
-class RestaurantMenuCreate(RestaurantMenuBase):
-    pass
-
-class RestaurantMenu(RestaurantMenuBase):
-    restaurant_menu_id: int
-    restaurant: Restaurant
-    menu: 'Menu'
-    
-    class Config:
-        from_attributes = True
-
 # --- [4. 메뉴 메인 정보 스키마] --- (정규화 후)
 class MenuBase(BaseModel):
     menu_name: str
     category: str
     image_url: Optional[str] = None
+    price: int = 8000
     is_lunch_available: bool = True
     matching_weather: Optional[str] = None
     matching_mood: Optional[str] = None
@@ -75,7 +37,6 @@ class MenuCreate(MenuBase):
 class Menu(MenuBase):
     menu_id: int
     details: Optional[MenuDetail] = None
-    restaurant_menus: Optional[List[RestaurantMenu]] = None
 
     class Config:
         from_attributes = True
@@ -110,9 +71,26 @@ class User(UserBase):
     """사용자 조회용 규격"""
     user_id: int
     created_at: datetime
+    profile: Optional[UserProfileBase] = None
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    """사용자 프로필 수정용 규격"""
+    email: Optional[EmailStr] = None
+    nickname: Optional[str] = None
+    dietary_label: Optional[str] = None
+    allergies: Optional[str] = None
+    spicy_threshold: Optional[int] = None
+    saltiness_preference: Optional[int] = None
+    lunch_budget_max: Optional[int] = None
+    is_adventurous: Optional[bool] = None
+
+class PasswordUpdate(BaseModel):
+    """비밀번호 수정용 규격"""
+    current_password: str
+    new_password: str
 
 class Token(BaseModel):
     """로그인 결과 발급할 토큰 규격 (추가)"""
@@ -122,15 +100,7 @@ class Token(BaseModel):
     nickname: str  # ← [추가] 닉네임 필드
 
 
-# --- [4. 질문 및 피드백 스키마] --- (기존 유지)
-
-class DailyInquiry(BaseModel):
-    dietary_restriction : str
-    spicy_level : str
-    budget_range : str
-    salty_level : str
-    exploration_style : str
-    city: str = "Seoul"
+# --- [4. 피드백 스키마] --- (DailyInquiry 제거)
 
 class FeedbackCreate(BaseModel):
     # 인증된 유저의 토큰에서 ID를 가져오므로 user_id 필드 제외 가능 (프론트 전달용)
@@ -161,10 +131,10 @@ class MenuRecommendationDetail(BaseModel):
     rating: float
 
 class MenuRecommendation(BaseModel):
-    menu_id: int
     menu_name: str
     category: str
     image_url: Optional[str] = None
+    price: int  # 가격 필드 추가
     match_rate: int
     description: str
     details: MenuRecommendationDetail

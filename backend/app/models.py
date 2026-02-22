@@ -1,24 +1,32 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, JSON, Enum
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
+from enum import Enum as PyEnum
 
-# --- [1. 식당 정보] ---
-class Restaurant(Base):
-    __tablename__ = "restaurants"
-
-    restaurant_id = Column(Integer, primary_key=True, index=True)
-    restaurant_name = Column(String, nullable=False)
-    address = Column(String, nullable=False)
-    phone_number = Column(String)
-    latitude = Column(Float)  # GPS 좌표
-    longitude = Column(Float)
-    opening_hours = Column(String)  # "09:00-22:00"
-    rating = Column(Float, default=0.0)  # 식당 평점
-    image_url = Column(String)
+# --- [피드백 타입 Enum] ---
+class FeedbackType(str, PyEnum):
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    NEUTRAL = "neutral"
+    POOR = "poor"
+    BAD = "bad"
+    DISLIKE = "dislike"
+    LOVE = "love"
+    LIKE = "like"
+    OKAY = "okay"
     
-    # 관계 설정
-    menus = relationship("RestaurantMenu", back_populates="restaurant")
+    @classmethod
+    def get_positive_types(cls):
+        return [cls.EXCELLENT, cls.GOOD, cls.LOVE, cls.LIKE]
+    
+    @classmethod
+    def get_neutral_types(cls):
+        return [cls.NEUTRAL, cls.OKAY]
+    
+    @classmethod
+    def get_negative_types(cls):
+        return [cls.POOR, cls.BAD, cls.DISLIKE]
 
 # --- [2. 메뉴 정보 (정규화 후) ---
 class Menu(Base):
@@ -28,35 +36,17 @@ class Menu(Base):
     menu_name = Column(String, nullable=False)
     category = Column(String)
     image_url = Column(String)
+    price = Column(Integer, default=8000)  # 가격 정보 직접 추가
     
     # 추천 알고리즘용 필드 (유지)
     matching_weather = Column(String)
-    matching_mood = Column(String)
     suitable_ground_size = Column(Integer)
     is_quick_meal = Column(Boolean)
     is_lunch_available = Column(Boolean, default=True)
 
     # 관계 설정
     details = relationship("MenuDetail", back_populates="menu", uselist=False)
-    restaurant_menus = relationship("RestaurantMenu", back_populates="menu")
     visits = relationship("UserHistory", back_populates="menu")
-
-# --- [3. 식당-메뉴 연결 테이블] ---
-class RestaurantMenu(Base):
-    __tablename__ = "restaurant_menus"
-
-    restaurant_menu_id = Column(Integer, primary_key=True, index=True)
-    restaurant_id = Column(Integer, ForeignKey("restaurants.restaurant_id"), nullable=False)
-    menu_id = Column(Integer, ForeignKey("menus.menu_id"), nullable=False)
-    
-    # 해당 식당에서의 메뉴별 정보
-    price = Column(Integer, nullable=False)  # 가격
-    is_available = Column(Boolean, default=True)  # 판매 여부
-    special_note = Column(String)  # "특선 메뉴", "시즌 한정" 등
-    
-    # 관계 설정
-    restaurant = relationship("Restaurant", back_populates="menus")
-    menu = relationship("Menu", back_populates="restaurant_menus")
 
 # --- [4. 메뉴 상세 수치] ---
 class MenuDetail(Base):
@@ -119,6 +109,8 @@ class UserHistory(Base):
     last_visit_date = Column(DateTime, default=datetime.utcnow)
     visit_count = Column(Integer, default=1)
     last_eaten_category = Column(String)
+    last_eaten_menu = Column(String)  # 마지막으로 먹은 메뉴 이름
+    recent_menus = Column(JSON)  # 최근 추천된 메뉴 목록 (JSON 배열)
     
     user_rating = Column(Integer, nullable=True)
     is_revisit_intended = Column(Boolean, default=True)
@@ -126,7 +118,6 @@ class UserHistory(Base):
 
     # 관계 설정
     menu = relationship("Menu", back_populates="visits")
-    # [수정] 중복 정의 제거 및 "UserAccount"로 명칭 통일
     user = relationship("UserAccount", back_populates="histories")
 
 # --- [6. 추천 피드백] ---
@@ -136,7 +127,7 @@ class RecommendationFeedback(Base):
     feedback_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user_accounts.user_id"), index=True)
     menu_name = Column(String, nullable=False)
-    feedback_type = Column(String)
+    feedback_type = Column(String)  # String으로 유지하여 기존 데이터 호환성 확보
     category = Column(String)
     score = Column(Float)
 

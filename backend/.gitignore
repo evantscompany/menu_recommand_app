@@ -8,3 +8,6 @@ restaurant_app.db
 
 # Environment
 .env
+.env.local
+.env.production
+*.env

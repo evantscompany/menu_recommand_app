@@ -6,6 +6,8 @@ from datetime import timedelta
 from ...database import get_db
 from ... import crud, schemas, models
 from ...core.security import verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..deps import get_current_user
+from typing import Union, Optional
 
 router = APIRouter()
 
@@ -40,18 +42,60 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
-# --- [2. 로그인 API] --- (Swagger Authorize 호환 수정)
+# --- [2. 로그인 API] --- (OAuth2PasswordRequestForm 지원 - Swagger Authorize 버튼용)
 @router.post("/login")
 def login(
     db: Session = Depends(get_db),
-    # [수정] schemas.UserLogin 대신 OAuth2PasswordRequestForm 사용
-    # 이를 통해 Swagger UI의 Authorize 창(Form Data 방식)과 호환됩니다.
-    login_data: OAuth2PasswordRequestForm = Depends() 
+    form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
     아이디/비번 검증 후 Access Token(JWT) 발급
+    OAuth2PasswordRequestForm 지원 (Swagger Authorize 버튼용)
     """
-    # 1. 유저 찾기 (login_data.username으로 접근)
+    username = form_data.username
+    password = form_data.password
+
+    # 1. 유저 찾기
+    user = crud.get_user_by_username(db, username=username)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="아이디 또는 비밀번호가 틀렸습니다.",
+        )
+
+    # 2. 비밀번호 검증
+    if not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="아이디 또는 비밀번호가 틀렸습니다.",
+        )
+
+    # 3. 토큰 생성
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.username, expires_delta=access_token_expires
+    )
+
+    # 응답 규격 (프론트엔드와 맞춤)
+    return {
+        "token": access_token,  # 프론트엔드에서 기대하는 필드명
+        "access_token": access_token,  # 호환성 유지
+        "token_type": "bearer",
+        "username": user.username,
+        "nickname": user.nickname
+    }
+
+# --- [2-1. 로그인 API] --- (JSON 요청 지원)
+@router.post("/login-json")
+def login_json(
+    login_data: schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
+    """
+    아이디/비번 검증 후 Access Token(JWT) 발급
+    JSON 형식 요청 지원
+    """
+    # 1. 유저 찾기
     user = crud.get_user_by_username(db, username=login_data.username)
     if not user:
         raise HTTPException(
@@ -59,7 +103,7 @@ def login(
             detail="아이디 또는 비밀번호가 틀렸습니다.",
         )
 
-    # 2. 비밀번호 검증 (login_data.password로 접근)
+    # 2. 비밀번호 검증
     if not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -72,10 +116,18 @@ def login(
         subject=user.username, expires_delta=access_token_expires
     )
 
-    # 응답 규격은 schemas.Token 형식을 따름
+    # 응답 규격 (프론트엔드와 맞춤)
     return {
-        "access_token": access_token, 
+        "token": access_token,  # 프론트엔드에서 기대하는 필드명
+        "access_token": access_token,  # 호환성 유지
         "token_type": "bearer",
         "username": user.username,
-        "nickname": user.nickname  # ← [추가] 닉네임 필드
+        "nickname": user.nickname
     }
+
+@router.get("/me", response_model=schemas.User)
+def get_current_user_info(current_user: models.UserAccount = Depends(get_current_user)):
+    """
+    현재 인증된 사용자 정보 조회
+    """
+    return current_user

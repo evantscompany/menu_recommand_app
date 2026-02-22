@@ -131,7 +131,6 @@ class MenuRecommendationDetail(BaseModel):
     rating: float
 
 class MenuRecommendation(BaseModel):
-    menu_id: int
     menu_name: str
     category: str
     image_url: Optional[str] = None

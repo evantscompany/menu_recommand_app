@@ -696,7 +696,13 @@ def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, hist
     
     # 실시간 피드백 반영 (개선된 부분)
     if db and user:
-        latest_feedback = get_latest_feedback(db, user.user_id, menu.menu_name)
+        # user가 UserProfile 객체인 경우와 UserAccount 객체인 경우 모두 처리
+        user_id = getattr(user, 'user_id', None)
+        if not user_id and hasattr(user, 'id'):
+            user_id = user.id
+        
+        if user_id:
+            latest_feedback = get_latest_feedback(db, user_id, menu.menu_name)
         
         if latest_feedback:
             # 피드백 점수 기반 동적 조정
@@ -808,14 +814,22 @@ def _find_similar_menus(menu, recent_menus):
         recent_menu_lower = recent_menu.lower()
         if recent_menu_lower in korean_food_groups.get(menu_group, []):
             similar_menus.append(recent_menu)
-    
+
     return similar_menus
 
 def generate_recommendation_reason(menu, weather_data, user, db):
     """메뉴 추천 이유 생성"""
     # 최신 피드백 기반 이유 추가
+    latest_feedback = None
     if db and user:
-        latest_feedback = get_latest_feedback(db, user.user_id, menu.menu_name)
+        # user가 UserProfile 객체인 경우와 UserAccount 객체인 경우 모두 처리
+        user_id = getattr(user, 'user_id', None)
+        if not user_id and hasattr(user, 'id'):
+            user_id = user.id
+
+        if user_id:
+            latest_feedback = get_latest_feedback(db, user_id, menu.menu_name)
+
         if latest_feedback:
             feedback_score = latest_feedback.score or 3.0
             
@@ -827,12 +841,12 @@ def generate_recommendation_reason(menu, weather_data, user, db):
                 return f"'{menu.menu_name}'는 최근 피드백이 다소 아쉽습니다. 다시 도전해보세요!"
     
     # 개선된 날씨 기반 이유
-    weather_desc = weather_data.get("description", "")
-    is_rainy = weather_data.get("is_rainy", False)
-    is_snowy = weather_data.get("is_snowy", False)
-    is_hot = weather_data.get("is_hot", False)
-    is_cold = weather_data.get("is_cold", False)
-    is_clear = weather_data.get("is_clear", False)
+    weather_desc = weather_data.get("description", "") if weather_data else ""
+    is_rainy = weather_data.get("is_rainy", False) if weather_data else False
+    is_snowy = weather_data.get("is_snowy", False) if weather_data else False
+    is_hot = weather_data.get("is_hot", False) if weather_data else False
+    is_cold = weather_data.get("is_cold", False) if weather_data else False
+    is_clear = weather_data.get("is_clear", False) if weather_data else False
     
     # 날씨별 추천 이유
     if is_rainy or is_snowy:
@@ -845,7 +859,7 @@ def generate_recommendation_reason(menu, weather_data, user, db):
         return f"맑은 날({weather_desc})엔 상쾌한 {menu.menu_name}이 딱이에요!"
     
     # 습도 기반 이유
-    humidity = weather_data.get("humidity", 50)
+    humidity = weather_data.get("humidity", 50) if weather_data else 50
     if humidity > 70:
         return f"습한 날({humidity}%)엔 가벼운 {menu.menu_name}이 좋겠어요!"
     elif humidity < 30:
@@ -855,4 +869,4 @@ def generate_recommendation_reason(menu, weather_data, user, db):
     if menu.details and menu.details.real_satisfaction_score >= 4.5:
         return f"실제 이용자 평점이 {menu.details.real_satisfaction_score}점으로 매우 검증된 메뉴입니다!"
     
-    return f"오늘 날씨({weather_desc})에 어울리는 {menu.category} 메뉴를 추천해요!"
+    return f"오늘 날씨({weather_desc})에 어울리는 {menu.category} 메뉴를 추천해요!" if weather_desc else f"{menu.category} 메뉴를 추천해요!"

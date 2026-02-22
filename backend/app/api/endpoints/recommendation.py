@@ -22,11 +22,21 @@ def add_recommendation_randomness(scored_items):
     random.seed(datetime.now().microsecond)  # 현재 시간의 마이크로초로 시드 설정
     
     randomized_items = []
-    for score, menu in scored_items:
+    for item in scored_items:
+        if len(item) == 3:  # (score, menu, reason) 형태
+            score, menu, reason = item
+        else:  # (score, menu) 형태
+            score, menu = item
+            reason = None
+        
         # 점수의 15%만큼 랜덤 변동 추가 (다양성 강화)
         random_variation = score * 0.15 * (random.random() - 0.5) * 2
         new_score = max(0, min(100, score + random_variation))
-        randomized_items.append((new_score, menu))
+        
+        if reason:
+            randomized_items.append((new_score, menu, reason))
+        else:
+            randomized_items.append((new_score, menu))
     
     # 다시 정렬
     randomized_items.sort(key=lambda x: x[0], reverse=True)
@@ -97,14 +107,26 @@ def apply_diversity_mechanism(scored_items):
     category_limited_items = []
     used_categories = set()
     
-    for score, menu in scored_items:
+    for item in scored_items:
+        if len(item) == 3:  # (score, menu, reason) 형태
+            score, menu, reason = item
+        else:  # (score, menu) 형태
+            score, menu = item
+            reason = None
+        
         if menu.category not in used_categories:
-            category_limited_items.append((score, menu))
+            if reason:
+                category_limited_items.append((score, menu, reason))
+            else:
+                category_limited_items.append((score, menu))
             used_categories.add(menu.category)
         else:
             # 이미 사용된 카테고리는 강력 페널티
             penalty = 50  # 카테고리 중복 강력 페널티
-            category_limited_items.append((max(0, score - penalty), menu))
+            if reason:
+                category_limited_items.append((max(0, score - penalty), menu, reason))
+            else:
+                category_limited_items.append((max(0, score - penalty), menu))
             print(f" 🔄 {menu.menu_name}: 카테고리 중복 강력 페널티 (-50) - {menu.category}")
     
     # 다시 정렬
@@ -123,14 +145,85 @@ def apply_diversity_mechanism(scored_items):
     # 3. 최상위 메뉴 추가 페널티 (연속 독점 방지)
     if len(final_items) > 0:
         top_menu = final_items[0][1]
-        for i, (score, menu) in enumerate(final_items):
+        for i, item in enumerate(final_items):
+            if len(item) == 3:
+                score, menu, reason = item
+            else:
+                score, menu = item
+                reason = None
+                
             if menu.menu_name == top_menu.menu_name:
-                final_items[i] = (max(0, score - 15), menu)  # 페널티 감소 (-20 → -15)
+                if reason:
+                    final_items[i] = (max(0, score - 15), menu, reason)
+                else:
+                    final_items[i] = (max(0, score - 15), menu)
                 print(f" 🔄 {menu.menu_name}: 최상위 메뉴 페널티 (-15)")
                 break
     
     # 최종 정렬
     final_items.sort(key=lambda x: x[0], reverse=True)
+    return final_items
+
+@router.get("/recommendations", response_model=List[schemas.MenuRecommendation])
+def get_recommendations_get(
+    current_user: models.UserAccount = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    GET 방식 추천 API - 프론트엔드 호환용
+    """
+    # 인증된 사용자만 추천 가능
+    user_id = current_user.user_id
+    user_profile = current_user.profile
+
+    if not user_profile:
+        raise HTTPException(status_code=404, detail="사용자 성향 프로필을 찾을 수 없습니다.")
+
+    # 메뉴 조회
+    menus = db.query(models.Menu)\
+        .filter(models.Menu.is_lunch_available == True)\
+        .all()
+    
+    # 실시간 날씨 데이터
+    weather_data = weather_service.get_current_weather("Seoul")
+    
+    # 추천 점수 계산
+    scored_items = []
+    for menu in menus:
+        score = calculate_recommendation_score(
+            menu=menu,
+            user=user_profile,
+            daily_inquiry=None,
+            weather_data=weather_data,
+            history=None,
+            db=db
+        )
+        if score > 0:
+            reason = generate_recommendation_reason(menu, weather_data, user_profile, db)
+            scored_items.append((score, menu, reason))
+    
+    # 랜덤성 추가
+    scored_items = add_recommendation_randomness(scored_items)
+    
+    # 상위 3개 선택
+    final_items = []
+    for score, menu, reason in scored_items[:3]:
+        description = reason or f"오늘 날씨에 어울리는 {menu.category} 메뉴를 추천해요!"
+        final_items.append(schemas.MenuRecommendation(
+            menu_name=menu.menu_name,
+            category=menu.category,
+            price=menu.price,
+            match_rate=min(int(score * 100), 100),
+            description=description,
+            image_url=menu.image_url,
+            details=schemas.MenuRecommendationDetail(
+                spicy_level=menu.details.spicy_level if menu.details else 0,
+                texture=menu.details.texture if menu.details else "일반적",
+                rating=menu.details.real_satisfaction_score if menu.details else 0.0
+            ),
+            restaurant_info=None
+        ))
+    
     return final_items
 
 @router.post("/", response_model=List[schemas.MenuRecommendation])
@@ -260,13 +353,12 @@ def get_recommendations(
 
         results.append(
             schemas.MenuRecommendation(
-                menu_id=menu.menu_id,
                 menu_name=menu.menu_name,
                 category=menu.category,
                 image_url=menu.image_url or "https://via.placeholder.com/150",
                 price=menu.price,  # 메뉴 가격 직접 사용
                 match_rate=match_rate,
-                description=generate_recommendation_reason(menu, weather_data, user=current_user, db=db),
+                description=generate_recommendation_reason(menu, weather_data, user=current_user, db=db) or f"오늘 날씨에 어울리는 {menu.category} 메뉴를 추천해요!",
                 details=schemas.MenuRecommendationDetail(
                     spicy_level=spicy,
                     texture=texture,
@@ -315,6 +407,38 @@ def select_menu(
         
         print(f"📝 새 히스토리 생성: {menu.menu_name}")
         return {"message": f"{menu.menu_name} 선택 완료", "history_id": history.history_id}
+
+@router.post("/feedback", response_model=dict)
+def submit_feedback_get(
+    feedback: dict,
+    current_user: models.UserAccount = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    피드백 API - 프론트엔드 호환용 (인증 필수)
+    """
+    try:
+        user_id = current_user.user_id
+        menu_name = feedback.get("menu_name")
+        feedback_type = feedback.get("feedback_type")
+        category = feedback.get("category")
+        score = feedback.get("score", 0)
+        
+        # 피드백 저장
+        db_feedback = models.RecommendationFeedback(
+            user_id=user_id,
+            menu_name=menu_name,
+            feedback_type=feedback_type,
+            category=category,
+            score=score
+        )
+        db.add(db_feedback)
+        db.commit()
+        db.refresh(db_feedback)
+        
+        return {"message": "피드백이 저장되었습니다", "feedback_id": db_feedback.feedback_id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"피드백 저장 실패: {str(e)}")
 
 @router.post("/feedback/instant", response_model=schemas.FeedbackResponse)
 def submit_instant_feedback(

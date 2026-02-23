@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import BASE_URL from './config';
+import BASE_URL, { API_ENDPOINTS } from './config';
 
 /**
  * 전역 API 통신 클라이언트 (Axios Instance)
@@ -14,6 +14,8 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+apiClient.urls = API_ENDPOINTS;
 
 /**
  * [Request Interceptor]

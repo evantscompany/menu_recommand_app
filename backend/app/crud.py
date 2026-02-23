@@ -8,10 +8,8 @@ def create_menu(db: Session, menu: schemas.MenuCreate):
     db_menu = models.Menu(
         menu_name=menu.menu_name,
         category=menu.category,
-        address=menu.address,
-        phone_number=menu.phone_number,
         image_url=menu.image_url,
-        price_level=menu.price_level,
+        price=menu.price,  # 가격 정보 직접 추가
         is_lunch_available=menu.is_lunch_available,
         matching_weather=menu.matching_weather,
         matching_mood=menu.matching_mood,
@@ -72,6 +70,57 @@ def create_user(db: Session, user: schemas.UserCreate):
 def get_user(db: Session, user_id: int):
     """사용자 ID로 계정과 프로필을 함께 조회"""
     return db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
+
+def update_user_profile(db: Session, user_id: int, user_update: schemas.UserUpdate):
+    """사용자 프로필 업데이트"""
+    db_user = db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
+    if not db_user:
+        return None
+    
+    # 계정 정보 업데이트
+    if user_update.email is not None:
+        db_user.email = user_update.email
+    if user_update.nickname is not None:
+        db_user.nickname = user_update.nickname
+    
+    # 프로필 정보 업데이트
+    db_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).first()
+    if db_profile:
+        if user_update.dietary_label is not None:
+            db_profile.dietary_label = user_update.dietary_label
+        if user_update.allergies is not None:
+            db_profile.allergies = user_update.allergies
+        if user_update.spicy_threshold is not None:
+            db_profile.spicy_threshold = user_update.spicy_threshold
+        if user_update.saltiness_preference is not None:
+            db_profile.saltiness_preference = user_update.saltiness_preference
+        if user_update.lunch_budget_max is not None:
+            db_profile.lunch_budget_max = user_update.lunch_budget_max
+        if user_update.is_adventurous is not None:
+            db_profile.is_adventurous = user_update.is_adventurous
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def update_user_password(db: Session, user_id: int, password_update: schemas.PasswordUpdate):
+    """사용자 비밀번호 업데이트"""
+    db_user = db.query(models.UserAccount).filter(models.UserAccount.user_id == user_id).first()
+    if not db_user:
+        return None
+    
+    # 현재 비밀번호 확인
+    from .core.security import verify_password
+    if not verify_password(password_update.current_password, db_user.hashed_password):
+        return None
+    
+    # 새 비밀번호로 업데이트
+    from .core.security import get_password_hash
+    db_user.hashed_password = get_password_hash(password_update.new_password)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
 # --- [3. 피드백 및 히스토리 관련 (History & Feedback) ] --- (연결 테이블명 수정)

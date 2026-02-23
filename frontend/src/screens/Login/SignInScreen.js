@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { styles } from './LoginStyle';
-import apiClient from '../../Api/ApiClient';
+import apiClient from '../../Api/apiClient'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 
@@ -27,36 +27,36 @@ const SignInScreen = ({ navigation }) => {
       return;
     }
 
+    // // // =========================================================
+    // // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
+    // // // ---------------------------------------------------------
+    // console.log('[MOCK] 로그인 시도 데이터:', { username, password });
+    // Alert.alert("테스트", "로그인 버튼이 정상 작동합니다. (MOCK_MODE)");
+    // navigation.replace('Home'); 
     // // =========================================================
-    // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
-    // // ---------------------------------------------------------
-    console.log('[MOCK] 로그인 시도 데이터:', { username, password });
-    Alert.alert("테스트", "로그인 버튼이 정상 작동합니다. (MOCK_MODE)");
-    navigation.replace('Home'); 
+
+
+
     // =========================================================
+    // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/login 로그인 데이터 전송
+    // ---------------------------------------------------------
+    // 서버 연동 시 위 [MOCK_MODE]를 주석 처리하고 여기 주석 해제
+    try {  
 
+      const result = await apiClient.post(apiClient.urls.LOGIN, { username, password });
 
-
-    // // =========================================================
-    // // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/login 로그인 데이터 전송
-    // // ---------------------------------------------------------
-    // // 서버 연동 시 위 [MOCK_MODE]를 주석 처리하고 여기 주석 해제
-    // try {  
-
-    //   const result = await apiClient.post('/api/auth/login', { username, password });
-
-    //   if (result && result.access_token) {
-    //     // 로그인 성공 시 토큰을 보관함에 저장
-    //     await AsyncStorage.setItem('userToken', result.access_token);
+      if (result && result.access_token) {
+        // 로그인 성공 시 토큰을 보관함에 저장
+        await AsyncStorage.setItem('userToken', result.access_token);
         
-    //     Alert.alert("성공", "로그인되었습니다.");
-    //     navigation.replace('Home'); 
-    //   }
-    // } catch (error) {
-    //   Alert.alert("오류", "아이디 또는 비밀번호를 확인해주세요.");
-    // }
+        Alert.alert("성공", "로그인되었습니다.");
+        navigation.replace('Home'); 
+      }
+    } catch (error) {
+      Alert.alert("오류", "아이디 또는 비밀번호를 확인해주세요.");
+    }
 
-    // // ---------------------------------------------------------
+    // ---------------------------------------------------------
 
 
   };

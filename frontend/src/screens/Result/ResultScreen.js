@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, FlatList, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { styles } from './ResultStyle'; 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import axios from 'axios';
-import apiClient from '../../Api/ApiClient';
+import apiClient from '../../Api/apiClient';
 import CommonLoading from '../../components/CommonLoadingScreen';
 
 const { width } = Dimensions.get('window');
@@ -31,69 +30,69 @@ const ResultScreen = ({ route, navigation }) => {
   const fetchRecommendations = async () => {
 
     
-    // =========================================================
-    // [MOCK_MODE]: 서버 연동 전 테스트용 (전달받은 데이터 그대로 사용)
-    // ---------------------------------------------------------
-    setLoading(true); // 로딩 시뮬레이션 시작
-    
-    setTimeout(() => {
-      const mockData = [
-        {
-          menu_name: "매콤 치즈 부대찌개",
-          category: "한식",
-          description: "비 오는 날씨와 유저님의 매운맛 선호도가 일치합니다.",
-          address: "서울 강남구 역삼동 123-4",
-          details: { rating: "4.8" }
-        },
-        {
-          menu_name: "바삭한 돈카츠",
-          category: "일식",
-          description: "최근 일식 카테고리 방문 빈도가 높으시네요!",
-          address: "서울 강남구 논현동 56-7",
-          details: { rating: "4.5" }
-        },
-        {
-          menu_name: "연어 포케",
-          category: "샐러드",
-          description: "가벼운 한 끼를 원하실 때 추천드리는 메뉴입니다.",
-          address: "서울 서초구 서초동 88-9",
-          details: { rating: "4.2" }
-        }
-      ];
-
-      setRecommendations(mockData);
-      setLoading(false);
-      console.log('[MOCK] 결과 화면 가짜 데이터 로드 완료');
-    }, 1000); // 1초 뒤 데이터 출력
-    // =========================================================
-
-
-
     // // =========================================================
-    // // [REAL_API]: 실제 서버 연동 구역  [GET] /api/recommendations 메뉴 추천 결과 받기
+    // // [MOCK_MODE]: 서버 연동 전 테스트용 (전달받은 데이터 그대로 사용)
     // // ---------------------------------------------------------
+    // setLoading(true); // 로딩 시뮬레이션 시작
+    
+    // setTimeout(() => {
+    //   const mockData = [
+    //     {
+    //       menu_name: "매콤 치즈 부대찌개",
+    //       category: "한식",
+    //       description: "비 오는 날씨와 유저님의 매운맛 선호도가 일치합니다.",
+    //       address: "서울 강남구 역삼동 123-4",
+    //       details: { rating: "4.8" }
+    //     },
+    //     {
+    //       menu_name: "바삭한 돈카츠",
+    //       category: "일식",
+    //       description: "최근 일식 카테고리 방문 빈도가 높으시네요!",
+    //       address: "서울 강남구 논현동 56-7",
+    //       details: { rating: "4.5" }
+    //     },
+    //     {
+    //       menu_name: "연어 포케",
+    //       category: "샐러드",
+    //       description: "가벼운 한 끼를 원하실 때 추천드리는 메뉴입니다.",
+    //       address: "서울 서초구 서초동 88-9",
+    //       details: { rating: "4.2" }
+    //     }
+    //   ];
 
-    // setLoading(true);
-    // try {
-    //   const data = await apiClient.post(API_ENDPOINTS.RECOMMEND, {
-    //     dietary_restriction: userSurvey?.dietary_label || "none",
-    //     spicy_level: String(userSurvey?.spicy_threshold || "3"),
-    //     budget_range: String(userSurvey?.lunch_budget_max || "12000"),
-    //     salty_level: String(userSurvey?.saltiness_preference || "3"),
-    //     exploration_style: userSurvey?.is_adventurous ? "adventurous" : "stable",
-    //     city: "Seoul"
-    //   });
-
-    //   if (data) {
-    //     setRecommendations(data);
-    //   }
-    // } catch (error) {
-    //   console.error('추천 조회 실패:', error);
-    //   Alert.alert("연동 에러", "추천 결과를 가져오지 못했습니다.");
-    // } finally {
+    //   setRecommendations(mockData);
     //   setLoading(false);
-    // }
-    // // ========================================================= */
+    //   console.log('[MOCK] 결과 화면 가짜 데이터 로드 완료');
+    // }, 1000); // 1초 뒤 데이터 출력
+    // // =========================================================
+
+
+
+    // =========================================================
+    // [REAL_API]: 실제 서버 연동 구역  [GET] /api/recommendations 메뉴 추천 결과 받기
+    // ---------------------------------------------------------
+
+    setLoading(true);
+    try {
+      const data = await apiClient.post(apiClient.urls.RECOMMEND,{
+        dietary_restriction: userSurvey?.dietary_label || "none",
+        spicy_level: String(userSurvey?.spicy_threshold || "3"),
+        budget_range: String(userSurvey?.lunch_budget_max || "12000"),
+        salty_level: String(userSurvey?.saltiness_preference || "3"),
+        exploration_style: userSurvey?.is_adventurous ? "adventurous" : "stable",
+        city: "Seoul"
+      });
+
+      if (data) {
+        setRecommendations(data);
+      }
+    } catch (error) {
+      console.error('추천 조회 실패:', error);
+      Alert.alert("연동 에러", "추천 결과를 가져오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+    // ========================================================= 
 
   };
 
@@ -103,32 +102,32 @@ const ResultScreen = ({ route, navigation }) => {
   const handleFeedback = async (item, type) => {
 
 
-    // =========================================================
-    // [MOCK_MODE]: 피드백 전송 테스트용
-    // ---------------------------------------------------------
-    console.log(`[MOCK] 피드백: ${item.menu_name}, 타입: ${type}`);
-    Alert.alert("알림", `${type === 'like' ? '좋아요' : '별로야'}가 반영되었습니다. (MOCK)`);
-    // =========================================================
-
-
-
     // // =========================================================
-    // // [REAL_API]: [POST] /api/feedback 실제 서버 연동 구역 /api/feedback 유저 피드백 전송
+    // // [MOCK_MODE]: 피드백 전송 테스트용
     // // ---------------------------------------------------------
-    // try {
-    //   await apiClient.post(API_ENDPOINTS.FEEDBACK, {
-    //     menu_name: item.menu_name || item.name,
-    //     feedback_type: type,
-    //     category: item.category || "일반",
-    //     score: item.match_rate || 0
-    //   });
-
-    //   Alert.alert("알림", "피드백이 저장되었습니다.");
-    // } catch (error) {
-    //   console.error('피드백 전송 실패:', error);
-    //   Alert.alert("오류", "피드백 전송 중 문제가 발생했습니다.");
-    // }
+    // console.log(`[MOCK] 피드백: ${item.menu_name}, 타입: ${type}`);
+    // Alert.alert("알림", `${type === 'like' ? '좋아요' : '별로야'}가 반영되었습니다. (MOCK)`);
     // // =========================================================
+
+
+
+    // =========================================================
+    // [REAL_API]: [POST] /api/feedback 실제 서버 연동 구역 /api/feedback 유저 피드백 전송
+    // ---------------------------------------------------------
+    try {
+      await apiClient.post(apiClient.urls.FEEDBACK,{
+        menu_name: item.menu_name || item.name,
+        feedback_type: type,
+        category: item.category || "일반",
+        score: item.match_rate || 0
+      });
+
+      Alert.alert("알림", "피드백이 저장되었습니다.");
+    } catch (error) {
+      console.error('피드백 전송 실패:', error);
+      Alert.alert("오류", "피드백 전송 중 문제가 발생했습니다.");
+    }
+    // =========================================================
   };
 
   const renderItem = ({ item, index }) => {

@@ -8,12 +8,12 @@ const BASE_URL = `http://${SERVER_IP}:${PORT}`;
 
 export const API_ENDPOINTS = {
   // 인증 관련
-  SIGNUP: `${BASE_URL}/api/auth/signup`,
-  LOGIN: `${BASE_URL}/api/auth/login`,
+  SIGNUP: `api/auth/signup`,
+  LOGIN: `api/auth/login`,
   
   // 추천 관련
-  RECOMMEND: `${BASE_URL}/recommend/`,
-  FEEDBACK: `${BASE_URL}/api/recommendations/feedback/instant`,
+  RECOMMEND: `api/recommend/`,
+  FEEDBACK: `api/recommend/feedback`,
   
   // 홈 화면용 (추후 백엔드 준비 시 활성화)
   // WEATHER_RECOMMEND: `${BASE_URL}/api/v1/home/weather-recommend`,

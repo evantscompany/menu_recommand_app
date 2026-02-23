@@ -39,7 +39,7 @@ def seed_db():
         menu = models.Menu(
             menu_name=menu_name,
             category=category,
-            price_level=random.randrange(7000, 25000, 500), # 7000원~25000원 사이
+            price=random.choice([6000, 8000, 9000, 10000, 12000]), # 직접 가격 설정
             image_url=f"https://picsum.photos/seed/{menu_name}/400/300",
             is_lunch_available=True,
             matching_weather=random.choice(["Clear", "Rain", "Cloudy", "Snow"]),
@@ -65,14 +65,24 @@ def seed_db():
     print(f"✅ 총 {db.query(models.Menu).count()}개의 메뉴 데이터 주입이 완료되었습니다!")
 
     # 4. 테스트 유저 생성 (ID: 1)
-    test_user = models.User(
+    test_user = models.UserAccount(
         username="test_user",
+        email="test@example.com",
+        nickname="테스트유저",
+        hashed_password="test1234"  # 실제로는 해시 필요
+    )
+    db.add(test_user)
+    db.commit()
+    
+    # 유저 프로필 생성
+    test_profile = models.UserProfile(
+        user_id=test_user.user_id,
         dietary_label="none",
         spicy_threshold=3,
         saltiness_preference=3,
         lunch_budget_max=15000
     )
-    db.add(test_user)
+    db.add(test_profile)
     db.commit()
     print("👤 테스트 유저(ID: 1) 생성 완료")
 

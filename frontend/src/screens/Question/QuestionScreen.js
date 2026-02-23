@@ -2,11 +2,17 @@
  * QuestionScreen.js
  */
 
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert, ActivityIndicator, SafeAreaView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { 
+  View, Text, TouchableOpacity, TextInput, Alert, 
+  SafeAreaView, Keyboard, TouchableWithoutFeedback,
+  PanResponder
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../../Api/apiClient';
 import { styles } from './QuestionStyle'; 
+import { MaterialCommunityIcons } from '@expo/vector-icons'; 
+import CommonLoading from '../../components/CommonLoadingScreen';
 
 const questions = [
   { 
@@ -50,7 +56,7 @@ const questions = [
     category: "경제적 성향", 
     question: "한 끼 지출 가능 예산 상한선", 
     type: "INPUT", 
-    placeholder: "숫자만 입력 (예: 12000)" 
+    placeholder: "숫자만 입력 (예: 10000)" 
   },
   { 
     key: "is_adventurous", 
@@ -69,8 +75,46 @@ const QuestionScreen = ({ route, navigation }) => {
   
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState("10000");
   const [loading, setLoading] = useState(false);
+
+  // 누적 드래그 거리를 체크하기 위한 변수
+  const dragAccumulator = useRef(0);
+
+  // [드래그 로직] 위아래 스와이프로 금액 조절
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        dragAccumulator.current = 0;
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        // 감도 조절: 12픽셀 이동 시 1,000원씩 변경
+        const threshold = 12; 
+        const diff = gestureState.dy - dragAccumulator.current;
+
+        if (Math.abs(diff) >= threshold) {
+          // 위로 밀면(-dy) 증가, 아래로 밀면(+dy) 감소
+          const change = diff < 0 ? 1000 : -1000;
+          adjustBudget(change);
+          dragAccumulator.current = gestureState.dy;
+        }
+      },
+      onPanResponderRelease: () => {
+        dragAccumulator.current = 0;
+      }
+    })
+  ).current;
+
+  // 금액 조절 함수 (천원 단위)
+  const adjustBudget = (amount) => {
+    setInputText((prev) => {
+      const currentBudget = parseInt(prev, 10) || 0;
+      const newBudget = Math.max(0, currentBudget + amount);
+      return String(newBudget);
+    });
+  };
 
   const handleAnswer = async (value) => {
     const currentQuestion = questions[currentStep];
@@ -89,142 +133,161 @@ const QuestionScreen = ({ route, navigation }) => {
     if (currentStep < questions.length - 1) {
       setAnswers(newAnswers);
       setCurrentStep(currentStep + 1);
-      setInputText("");
+      
+      // 다음 질문으로 넘어갈 때 만원으로 다시 세팅
+      setInputText("10000");
     } else {
       // 서버 전송 로직
       submitSurvey(newAnswers);
-
     }
   };
 
   const submitSurvey = async (finalAnswers) => {
-    // 백엔드 전송용 통합 데이터 생성 (계정 + 취향)
     const requestData = {
-      ...accountData,    // username, email, password, nickname
-      ...finalAnswers,   // dietary_label, spicy_threshold 등
-      allergies: ""      // 선택사항이므로 일단 빈값 처리
+      ...accountData,
+      ...finalAnswers,
+      allergies: ""
     };
 
-    // // // =========================================================
-    // // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
-    // // ---------------------------------------------------------
-    // console.log('[MOCK] 회원가입 통합 데이터:', requestData);
-    // Alert.alert("테스트", "설문이 완료되었습니다. 결과 화면으로 이동합니다.");
-    // navigation.navigate('Result', { userSurvey: requestData, recommendations: [] });
-    // // =========================================================
-
-
-
-// =========================================================
-    // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/signup 회원가입 데이터 전송
-    // ---------------------------------------------------------
     setLoading(true);
     try {
       // 1단계: 회원가입
       await apiClient.post(apiClient.urls.SIGNUP, requestData);
       
       // 2단계: 자동 로그인
-      const params = new URLSearchParams();
-      params.append('username', requestData.username);
-      params.append('password', requestData.password);
-
-      // 로그인 전용 규격
-      const loginRes = await apiClient.post(apiClient.urls.LOGIN, params.toString(),{
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      const loginRes = await apiClient.post(apiClient.urls.LOGIN, {
+        username: requestData.username,
+        password: requestData.password
       });
 
       // 3단계: 토큰 수신 및 결과 화면 이동
       if (loginRes && loginRes.access_token) {
-
-        // 휴대폰 저장소에 토큰 보관 나중에 다시 켤때 사용
         await AsyncStorage.setItem('userToken', loginRes.access_token);
+        await AsyncStorage.setItem('userNickname', loginRes.nickname || requestData.nickname);
 
-        // 토큰 즉시 사용
         apiClient.defaults.headers.Authorization = `Bearer ${loginRes.access_token}`;
         
         Alert.alert("성공", "회원가입 및 취향 분석이 완료되었습니다!");
         navigation.navigate('Result', { 
           userSurvey: requestData, 
-          access_token: loginRes.access_token 
+          access_token: loginRes.access_token
         });
       }
     } catch (error) {
-      console.error("[Network Error]:", error);
-      Alert.alert("가입 실패", "이미 존재하는 아이디거나 통신 에러가 발생했습니다.");
+      console.error("[Network Error]:", error.response?.data || error);
+      Alert.alert(
+        "가입 실패", 
+        error.response?.data?.detail || "이미 존재하는 아이디거나 통신 에러가 발생했습니다.",
+        [{ text: "확인", onPress: () => navigation.navigate('SignUp') }]
+      );
     } finally {
       setLoading(false);
     }
-    // =========================================================
-
   };
 
-  // 렌더링 헬퍼 변수
   const currentQ = questions[currentStep];
   const progressPercent = ((currentStep + 1) / questions.length) * 100;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {loading ? (
-        /* ==================== [Loading View] ==================== */
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366F1" />
-          <Text style={styles.loadingText}>데이터를 불러오고 있습니다...</Text>
-        </View>
-      ) : (
-        /* ==================== [Main Content] ==================== */
-        <View style={styles.contentContainer}>
-          
-          {/* 1. Header Area (Progress Bar) */}
-          <View style={styles.headerArea}>
-            <View style={styles.stepInfoContainer}>
-              <Text style={styles.stepText}>Step {currentStep + 1}</Text>
-              <Text style={styles.totalStepText}>/ {questions.length}</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView style={styles.container}>
+        {loading && <CommonLoading message="🐣 취향 분석 데이터를 처리 중입니다..." />}
+        
+        {!loading && (
+          <View style={styles.contentContainer}>
+            <View style={styles.headerArea}>
+              <View style={styles.stepInfoContainer}>
+                <Text style={styles.stepText}>Step {currentStep + 1}</Text>
+                <Text style={styles.totalStepText}>/ {questions.length}</Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+              </View>
             </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-            </View>
-          </View>
-          
-          {/* 2. Card Area (Question UI) */}
-          <View style={styles.cardWrapper}>
-            <View style={styles.cardContainer}>
-              <Text style={styles.categoryBadge}>{currentQ.category}</Text>
-              <Text style={styles.questionTitle}>{currentQ.question}</Text>
+            
+            <View style={styles.cardWrapper}>
+              <View style={styles.cardContainer}>
+                <Text style={styles.categoryBadge}>{currentQ.category}</Text>
+                <Text style={styles.questionTitle}>{currentQ.question}</Text>
 
-              {/* 문항 타입별 조건부 렌더링 (Input vs Select) */}
-              {currentQ.type === "INPUT" ? (
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.budgetInput}
-                    placeholder={currentQ.placeholder}
-                    placeholderTextColor="#94A3B8"
-                    keyboardType="numeric"
-                    value={inputText}
-                    onChangeText={setInputText}
-                  />
-                  <TouchableOpacity style={styles.confirmButton} onPress={() => handleAnswer(inputText)}>
-                    <Text style={styles.confirmButtonText}>확인</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.optionsContainer}>
-                  {currentQ.options.map((option, index) => (
+                {currentQ.type === "INPUT" ? (
+                  <View style={styles.inputWrapper}>
+                    {/* 가로 정렬: 입력창 + 드래그 전용 아이콘 구역 */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 30 }}>
+                      <TextInput
+                        style={[styles.budgetInput, { flex: 1, textAlign: 'center', marginBottom: 0 }]}
+                        placeholder={currentQ.placeholder}
+                        placeholderTextColor="#94A3B8"
+                        keyboardType="numeric"
+                        value={inputText}
+                        onChangeText={setInputText}
+                      />
+                      
+                      {/* [드래그 전용 아이콘 핸들] 디자인 */}
+                      <View 
+                        {...panResponder.panHandlers} 
+                        style={{ 
+                          width: 50, 
+                          height: 70,
+                          backgroundColor: '#F8FAFC',
+                          borderRadius: 15, 
+                          marginLeft: 12,
+                          justifyContent: 'center', 
+                          alignItems: 'center',
+                          borderWidth: 1.5,
+                          borderColor: '#E2E8F0', 
+                          // 그림자(iOS용)
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 3,
+                          elevation: 2, // 그림자(안드로이드용)
+                        }}
+                      >
+                        {/* 상단 화살표 */}
+                        <MaterialCommunityIcons name="chevron-up" size={20} color="#6366F1" style={{ marginBottom: -4 }} />
+                        
+                        {/* 슬라이더 핸들 느낌의 점 3개 ("드래그" 암시) */}
+                        <View style={{ marginVertical: 2 }}>
+                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', marginBottom: 2 }} />
+                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', marginBottom: 2 }} />
+                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+                        </View>
+
+                        {/* 하단 화살표 */}
+                        <MaterialCommunityIcons name="chevron-down" size={20} color="#6366F1" style={{ marginTop: -4 }} />
+                      </View>
+                    </View>
+
                     <TouchableOpacity 
-                      key={index} 
-                      style={styles.optionButton} 
-                      onPress={() => handleAnswer(option.value)}
+                      style={[styles.confirmButton, { width: '100%' }]} 
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        handleAnswer(inputText);
+                      }}
                     >
-                      <Text style={styles.optionText}>{option.label}</Text>
+                      <Text style={styles.confirmButtonText}>확인</Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+                  </View>
+                ) : (
+                  <View style={styles.optionsContainer}>
+                    {currentQ.options.map((option, index) => (
+                      <TouchableOpacity 
+                        key={index} 
+                        style={styles.optionButton} 
+                        onPress={() => handleAnswer(option.value)}
+                      >
+                        <Text style={styles.optionText}>{option.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-
-        </View>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 

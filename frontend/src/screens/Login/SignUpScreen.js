@@ -1,3 +1,5 @@
+// 회원가입
+
 import React, { useState } from 'react';
 import { 
   View, 
@@ -5,8 +7,8 @@ import {
   TextInput, 
   TouchableOpacity, 
   Alert,
-  KeyboardAvoidingView, // 키보드가 입력창을 가리지 않게
-  TouchableWithoutFeedback, // 터치 인식용
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback, 
   Keyboard,
   Platform,
   ScrollView
@@ -22,6 +24,7 @@ const SignUpScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // 수정: 비밀번호 확인용 State 추가
 
   /**
    * handleNextStep
@@ -29,20 +32,25 @@ const SignUpScreen = ({ navigation }) => {
    */
   const handleNextStep = () => {
     // 필수 입력값 확인
-    if (!username || !nickname || !email || !password) {
+    if (!username || !nickname || !email || !password || !confirmPassword) {
       Alert.alert("알림", "모든 항목을 입력해야 회원가입이 가능합니다.");
       return;
     }
 
-    // 수집된 데이터를 변수에 저장
+    // 수정: 비밀번호 오타 방지 일치 여부 확인
+    if (password !== confirmPassword) {
+      Alert.alert("알림", "비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    // 수집된 데이터를 변수에 저장 (수정: 스마트폰 자동 띄어쓰기 방지를 위해 trim() 적용)
     const accountData = { 
-      username: username, 
-      nickname: nickname,
-      email: email, 
-      password: password 
+      username: username.trim(), 
+      nickname: nickname.trim(),
+      email: email.trim(), 
+      password: password.trim() 
     };
 
-    // 변수를 Question으로 이동
     navigation.navigate('Question', { accountData }); 
   };
 
@@ -55,13 +63,12 @@ const SignUpScreen = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 
           <ScrollView 
-            contentContainerStyle={{ flexGrow: 1 }} // 스크롤 내용이 적어도 전체 화면 높이 유지
-            showsVerticalScrollIndicator={false} // 스크롤 바 숨기기
-            keyboardShouldPersistTaps="handled" // 입력창 터치 시 키보드 유지
+            contentContainerStyle={{ flexGrow: 1 }} 
+            showsVerticalScrollIndicator={false} 
+            keyboardShouldPersistTaps="handled" 
           >
             <View style={styles.content}>
               
-              {/* [상단] 헤더 영역 */}
               <View style={styles.headerArea}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                   <MaterialCommunityIcons name="arrow-left" size={28} color="#FFFFFF" style={{ marginBottom: 20 }} />
@@ -72,7 +79,6 @@ const SignUpScreen = ({ navigation }) => {
                 </Text>
               </View>
 
-              {/* [중앙] 입력 영역 */}
               <View style={styles.bottomArea}>
                 <Text style={styles.inputLabel}>계정 정보 입력</Text>
                 
@@ -83,6 +89,7 @@ const SignUpScreen = ({ navigation }) => {
                   value={username}
                   onChangeText={setUsername}
                   autoCapitalize="none"
+                  autoCorrect={false}
                   returnKeyType="next"
                 />
 
@@ -115,6 +122,19 @@ const SignUpScreen = ({ navigation }) => {
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
+                  returnKeyType="next"
+                />
+
+                {/* 수정: 비밀번호 확인 입력창 추가 */}
+                <TextInput 
+                  style={styles.inputField} 
+                  placeholder="비밀번호 확인" 
+                  placeholderTextColor="#94A3B8"
+                  secureTextEntry
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   returnKeyType="done"
                 />
 

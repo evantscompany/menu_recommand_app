@@ -16,7 +16,7 @@ const ResultScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
 
   // QuestionScreen에서 전달받은 기본 데이터 (서버 통신 시 활용)
-  const { userSurvey, access_token } = route.params || {};
+  const { userSurvey, access_token, nickname } = route.params || {};
   const userToken = access_token;
 
   // 화면 진입 시 추천 결과 조회
@@ -162,7 +162,16 @@ const ResultScreen = ({ route, navigation }) => {
             
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.actionBtn} onPress={() => handleFeedback(item, 'like')}>
+            <TouchableOpacity 
+              style={styles.actionBtn}
+              onPress={() => {
+                Alert.alert(
+                  "저장 완료", 
+                  `주변에 '${item.menu_name}' 맛집 보기!`,
+                  [{ text: "식당 보기", onPress: () => navigation.navigate('Map', { searchQuery: item.menu_name }) }]
+                );
+              }}
+            >
               <View style={[styles.iconCircle, { backgroundColor: '#F0FDF4' }]}>
                 <FontAwesome name="thumbs-up" size={24} color="#22C55E" />
               </View>
@@ -202,8 +211,11 @@ const ResultScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      <TouchableOpacity style={styles.retryBtn} onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.retryText}>다시 추천받기</Text>
+      <TouchableOpacity style={styles.retryBtn} onPress={() => navigation.navigate('Home',{
+        access_token: userToken, 
+        nickname: userSurvey?.nickname || nickname
+      })}>
+        <Text style={styles.retryText}>홈으로</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

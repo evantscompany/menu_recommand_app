@@ -4,8 +4,8 @@ import {
   ActivityIndicator, Alert 
 } from 'react-native';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../../Api/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from '../../Api/apiClient'
 import CommonLoading from '../../components/CommonLoadingScreen';
 import FooterBar from '../../components/FooterBar';
 import { styles } from './HomeStyle';
@@ -19,65 +19,86 @@ const HomeScreen = ({ route, navigation }) => {
   const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
   
   // 로그인/회원가입에서 넘어온 유저 세션 정보
-  const { access_token, nickname = "닉네임" } = route.params || {};
+  const [userNickname, setUserNickname] = useState("");
+  const { access_token, nickname } = route.params || {};
 
   useEffect(() => {
     loadHomeData();
+    initNickname();
   }, []);
+
+// 닉네임 유실 방지를 위한 초기화 로직
+const initNickname = async () => {
+    if (nickname) {
+      // 파라미터가 있으면 즉시 세팅 및 백업
+      setUserNickname(nickname);
+      await AsyncStorage.setItem('userNickname', nickname);
+    } else {
+      // 파라미터가 없으면 저장소에서 복구
+      const storedNickname = await AsyncStorage.getItem('userNickname');
+      setUserNickname(storedNickname || "유저"); 
+    }
+};
 
 const loadHomeData = async () => {
     setLoading(true);
 
-    if (MOCK_MODE) {
-      // =========================================================
-      // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용 (가짜 데이터)
-      // ---------------------------------------------------------
-      console.log('[MOCK] 홈 화면 데이터 로딩 중...');
-      
-      setTimeout(() => {
+    try {
+      // 0. 공통 apiClient에 토큰 저장
+      if (access_token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${access_token}`;
+      }
+
+      // // =========================================================
+      // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
+      // // ---------------------------------------------------------
+      if (MOCK_MODE) {
+        // [1단계: 날씨 기반 메뉴 추천 - MOCK]
         setWeatherData({
-          display_text: "비도 오는데 뜨끈한 칼국수 어때요?",
+          display_text: "비도 오는데 뜨끈한 칼국수 어때요?(MOCK)",
           recommended_menu: "칼국수"
         });
+
+        // [3단계: 주변 식당 - MOCK]
         setNearbyRestaurants([
-            { id: 1, name: "할머니 칼국수", distance: "350m", walking_time: "5분", category: "한식" },
-            { id: 2, name: "면사랑 국수집", distance: "700m", walking_time: "10분", category: "중식" },
-            { id: 3, name: "돈까스 하우스", distance: "450m", walking_time: "7분", category: "일식" },
-            { id: 4, name: "역삼 김치찜", distance: "200m", walking_time: "3분", category: "한식" },
-            { id: 5, name: "파스타 팩토리", distance: "800m", walking_time: "12분", category: "양식" },
-            { id: 6, name: "마라탕 명가", distance: "500m", walking_time: "8분", category: "중식" },
-            { id: 7, name: "수제버거 킹덤", distance: "1.2km", walking_time: "18분", category: "패스트푸드" },
-            { id: 8, name: "샐러드 가든", distance: "300m", walking_time: "4분", category: "샐러드" },
-            { id: 9, name: "소고기 국밥집", distance: "600m", walking_time: "9분", category: "한식" },
-            { id: 10, name: "초밥 천국", distance: "900m", walking_time: "13분", category: "일식" },
+          { id: 1, name: "할머니 칼국수(MOCK)", distance: "350m", walking_time: "5분", category: "한식" },
+          { id: 2, name: "면사랑 국수집(MOCK)", distance: "700m", walking_time: "10분", category: "중식" },
+          { id: 3, name: "돈까스 하우스(MOCK)", distance: "450m", walking_time: "7분", category: "일식" },
+          { id: 4, name: "역삼 김치찜(MOCK)", distance: "200m", walking_time: "3분", category: "한식" },
+          { id: 5, name: "파스타 팩토리(MOCK)", distance: "800m", walking_time: "12분", category: "양식" },
         ]);
-                setLoading(false); // 가짜 로딩 종료
-      }, 800);
-      // =========================================================
+      }
+      // // =========================================================
 
 
-    } else {
+
       // =========================================================
-      // [REAL_API]: 실제 백엔드 서버 연동 (나중에 주석 해제하여 사용)
+      // [REAL_API]: apiClient를 활용한 실제 백엔드 서버 연동
       // ---------------------------------------------------------
-      try {
-        /* 백엔드 연동 시 아래 주석을 해제하십시오 */
-        // const response = await axios.get(API_ENDPOINTS.HOME_DATA, {
-        //   headers: { Authorization: `Bearer ${access_token}` }
-        // });
-        // if (response.status === 200) {
-        //   setWeatherData(response.data.weather_recommend);
-        //   setNearbyRestaurants(response.data.nearby);
-        // }
-      } catch (error) {
-        console.error("[Home API Error]:", error.response?.data || error);
-        Alert.alert("서버 연결 실패 ⚠️", "서버 상태를 확인해주세요.");
-      } finally {
-        setLoading(false);
+      if (!MOCK_MODE) {
+        // [오늘 뭐 먹지? - REAL]
+        const response = await apiClient.get(apiClient.urls.HOME_DATA);
+        
+        if (response) {
+          setWeatherData(prev => ({
+            ...prev, // 날씨 기반 추천은 목 데이터 유지
+            ...response.weather_recommend // 오늘 뭐 먹지? 결과만 Real
+          }));
+        }
       }
       // =========================================================
+
+    } catch (error) {
+      console.error("[Home API Error]:", error.response?.data || error);
+      
+      if (error.response?.status === 401) {
+        Alert.alert("세션 만료", "다시 로그인해주세요.");
+        navigation.navigate('Login');
+      }
+    } finally {
+      setLoading(false);
     }
-  };
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,11 +112,11 @@ const loadHomeData = async () => {
       </TouchableOpacity>
     </View>
 
-    {/* [2] 고정 영역: 배너 & 날씨 (스크롤 되지 않음) */}
+    {/* [2] 고정 영역: 배너 & 날씨 */}
     <View style={styles.fixedContent}>
       {/* 섹션 1: 배너 */}
       <View style={styles.headerSection}>
-        <Text style={styles.welcomeText}>{nickname}님, 반가워요! 🐣</Text>
+        <Text style={styles.welcomeText}>{userNickname}님, 반가워요! 🐣</Text>
         <TouchableOpacity 
           style={styles.mainBanner}
           onPress={() => navigation.navigate('Result', { access_token })}
@@ -111,7 +132,13 @@ const loadHomeData = async () => {
       {/* 섹션 2: 날씨 큐레이션 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>날씨 맞춤 메뉴 ☁️</Text>
-        <TouchableOpacity style={styles.weatherCard}>
+        <TouchableOpacity 
+          style={styles.weatherCard}
+          // 날씨 카드를 누르면 즉시 Map으로 이동
+          onPress={() => navigation.navigate('Map', { 
+            searchQuery: weatherData?.recommended_menu 
+          })}
+        >
           <MaterialCommunityIcons name="weather-rainy" size={40} color="#6366F1" />
           <View style={styles.weatherTextContainer}>
             <Text style={styles.weatherText}>{weatherData?.display_text}</Text>
@@ -160,8 +187,7 @@ const loadHomeData = async () => {
     </ScrollView>
 
       {/* 하단 고정 푸터 (내비게이션 바) */}
-
-      <FooterBar activeTab="Home" nickname={nickname} access_token={access_token} />
+      <FooterBar activeTab="Home" nickname={userNickname} access_token={access_token} />
       
     </SafeAreaView>
   );

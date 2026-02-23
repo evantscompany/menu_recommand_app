@@ -1,3 +1,5 @@
+// 로그인
+
 import React, { useState } from 'react';
 import { 
   View, 
@@ -16,13 +18,18 @@ import { styles } from './LoginStyle';
 import apiClient from '../../Api/apiClient'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; 
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 수정: 필수 저장소 모듈 추가
 
 const SignInScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignIn = async () => {
-    if (!username || !password) {
+    // 수정: 자동 띄어쓰기 입력 방지를 위해 trim() 적용
+    const trimId = username.trim();
+    const trimPw = password.trim();
+
+    if (!trimId || !trimPw) {
       Alert.alert("알림", "아이디와 비밀번호를 모두 입력해주세요.");
       return;
     }
@@ -30,7 +37,7 @@ const SignInScreen = ({ navigation }) => {
     // // // =========================================================
     // // // [MOCK_MODE]: 서버 연동 전 UI 및 로직 테스트용
     // // // ---------------------------------------------------------
-    // console.log('[MOCK] 로그인 시도 데이터:', { username, password });
+    // console.log('[MOCK] 로그인 시도 데이터:', { username: trimId, password: trimPw });
     // Alert.alert("테스트", "로그인 버튼이 정상 작동합니다. (MOCK_MODE)");
     // navigation.replace('Home'); 
     // // =========================================================
@@ -38,47 +45,55 @@ const SignInScreen = ({ navigation }) => {
 
 
     // =========================================================
-    // [REAL_API]: 실제 백엔드 서버 연동 구역 api/auth/login 로그인 데이터 전송
+    // [REAL_API]: 실제 백엔드 서버 연동 구역 
     // ---------------------------------------------------------
-    // 서버 연동 시 위 [MOCK_MODE]를 주석 처리하고 여기 주석 해제
-    try {  
+    try {
+      const response = await apiClient.post(apiClient.urls.LOGIN, { 
+        username: trimId, 
+        password: trimPw 
+      });
 
-      const result = await apiClient.post(apiClient.urls.LOGIN, { username, password });
+      if (response && response.access_token) {
+        await AsyncStorage.setItem('userToken', response.access_token);
+        await AsyncStorage.setItem('userNickname', response.nickname); 
 
-      if (result && result.access_token) {
-        // 로그인 성공 시 토큰을 보관함에 저장
-        await AsyncStorage.setItem('userToken', result.access_token);
-        
-        Alert.alert("성공", "로그인되었습니다.");
-        navigation.replace('Home'); 
+        apiClient.defaults.headers.Authorization = `Bearer ${response.access_token}`;
+
+        navigation.replace('Home', { access_token: response.access_token }); 
       }
     } catch (error) {
-      Alert.alert("오류", "아이디 또는 비밀번호를 확인해주세요.");
+      console.error("[Login Error]:", error.response?.data || error);
+      
+      const errorDetail = error.response?.data?.detail;
+      Alert.alert(
+        "로그인 실패", 
+        errorDetail === "아이디 또는 비밀번호가 틀렸습니다." 
+          ? errorDetail 
+          : "아이디 또는 비밀번호를 다시 확인해주세요."
+      );
     }
-
-    // ---------------------------------------------------------
-
-
+    // =========================================================
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.content}>
               
               <View style={styles.headerArea}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                   <MaterialCommunityIcons name="arrow-left" size={28} color="#FFFFFF" style={{ marginBottom: 20 }} />
                 </TouchableOpacity>
-                <Text style={styles.titleText}>Sign In</Text>
-                <Text style={styles.subTitleText}>
-                  다시 만나서 반가워요!{"\n"}아이디와 비밀번호를 입력해주세요.
-                </Text>
+                <Text style={styles.titleText}>Mechuri</Text>
+                <Text style={styles.subTitleText}>당신의 오늘 점심을 책임집니다</Text>
               </View>
 
               <View style={styles.bottomArea}>
@@ -102,6 +117,8 @@ const SignInScreen = ({ navigation }) => {
                   value={password}
                   onChangeText={setPassword}
                   textContentType="password"
+                  autoCapitalize="none" // 수정: 비밀번호 첫 글자 대문자 자동변환 방지
+                  autoCorrect={false} // 수정: 스마트폰 자동완성 방지
                 />
 
                 <TouchableOpacity 
@@ -113,7 +130,13 @@ const SignInScreen = ({ navigation }) => {
                   <MaterialCommunityIcons name="login" size={24} color="#FFFFFF" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
 
-                {/* 비밀번호 재설정은 추후 고도화 시 추가 예정 */}
+                <View style={styles.signUpContainer}>
+                  <Text style={styles.footerText}>아직 회원이 아니신가요? </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                    <Text style={styles.signUpLinkText}>회원가입</Text>
+                  </TouchableOpacity>
+                </View>
+                
               </View>
 
             </View>

@@ -60,7 +60,25 @@
 ---
 
 ### 2. 로그인
+
+#### 2-1. Form Data 방식 (Swagger/웹페이지용)
 **엔드포인트**: `POST /api/auth/login`
+
+**요청 형식**: `application/x-www-form-urlencoded`
+```
+username=testuser&password=password123
+```
+
+**요청 데이터**:
+```
+username: string  // 계정 ID
+password: string  // 비밀번호
+```
+
+#### 2-2. JSON 방식 (모바일 앱용)
+**엔드포인트**: `POST /api/auth/login-json`
+
+**요청 형식**: `application/json`
 
 **요청 데이터**:
 ```json
@@ -88,15 +106,74 @@
 }
 ```
 
+**📱 프론트엔드 구현 가이드**:
+```javascript
+// 모바일 앱에서는 JSON 방식 사용
+const login = async (username, password) => {
+  try {
+    const response = await apiClient.post('/api/auth/login-json', {
+      username,
+      password,
+    });
+    
+    const { token } = response.data;
+    localStorage.setItem('access_token', token);
+    
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || '로그인 실패';
+  }
+};
+
+// 웹페이지에서는 Form Data 방식 사용
+const loginWeb = async (username, password) => {
+  try {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    
+    const response = await apiClient.post('/api/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    const { token } = response.data;
+    localStorage.setItem('access_token', token);
+    
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || '로그인 실패';
+  }
+};
+```
+
 ---
 
 ### 3. 현재 사용자 정보 조회
-**엔드포인트**: `GET /api/auth/me`
+**엔드포인트**: `GET /api/users/me`
 
 **헤더**:
 ```
 Authorization: Bearer {token}
 ```
+
+**성공 응답** (200):
+```json
+{
+  "user_id": 1,
+  "username": "testuser",
+  "email": "test@example.com",
+  "nickname": "테스트유저",
+  "created_at": "2026-02-20T00:00:00",
+  "profile": null
+}
+```
+
+---
+
+### 4. 특정 사용자 정보 조회 (관리자용)
+**엔드포인트**: `GET /api/users/{user_id}`
 
 **성공 응답** (200):
 ```json
@@ -115,6 +192,170 @@ Authorization: Bearer {token}
     "is_adventurous": true
   }
 }
+```
+
+---
+
+### 5. 현재 사용자 정보 수정
+**엔드포인트**: `PUT /api/users/me`
+
+**헤더**:
+```
+Authorization: Bearer {token}
+```
+
+**요청 데이터**:
+```json
+{
+  "email": "newemail@example.com",    // 선택사항
+  "nickname": "새닉네임",             // 선택사항
+  "dietary_label": "vegan",          // 선택사항
+  "allergies": "견과류",             // 선택사항
+  "spicy_threshold": 2,              // 선택사항
+  "saltiness_preference": 2,          // 선택사항
+  "lunch_budget_max": 10000,         // 선택사항
+  "is_adventurous": false            // 선택사항
+}
+```
+
+**성공 응답** (200):
+```json
+{
+  "user_id": 1,
+  "username": "testuser",
+  "email": "newemail@example.com",
+  "nickname": "새닉네임",
+  "created_at": "2026-02-20T00:00:00",
+  "profile": {
+    "dietary_label": "vegan",
+    "allergies": "견과류",
+    "spicy_threshold": 2,
+    "saltiness_preference": 2,
+    "lunch_budget_max": 10000,
+    "is_adventurous": false
+  }
+}
+```
+
+**에러 응답** (400):
+```json
+{
+  "detail": "이미 사용 중인 이메일입니다."
+}
+```
+
+---
+
+### 6. 비밀번호 변경
+**엔드포인트**: `PUT /api/users/me/password`
+
+**헤더**:
+```
+Authorization: Bearer {token}
+```
+
+**요청 데이터**:
+```json
+{
+  "current_password": "oldpassword123",
+  "new_password": "newpassword123"
+}
+```
+
+**성공 응답** (200):
+```json
+{
+  "message": "비밀번호가 성공적으로 변경되었습니다."
+}
+```
+
+**에러 응답** (400):
+```json
+{
+  "detail": "현재 비밀번호가 올바르지 않습니다."
+}
+```
+
+---
+
+### 7. 회원탈퇴
+**엔드포인트**: `DELETE /api/users/me`
+
+**헤더**:
+```
+Authorization: Bearer {token}
+```
+
+**성공 응답** (200):
+```json
+{
+  "message": "회원탈퇴가 완료되었습니다."
+}
+```
+
+---
+
+### 8. 사용자 삭제 (관리자용)
+**엔드포인트**: `DELETE /api/users/{user_id}`
+
+**성공 응답** (200):
+```json
+{
+  "message": "User 123 삭제 완료"
+}
+```
+
+---
+
+## 👤 사용자 관리 API 구현 가이드
+
+### 기본 설정
+```javascript
+// 사용자 정보 관리 API 클라이언트
+const userApi = {
+  // 현재 사용자 정보 조회
+  getCurrentUser: async () => {
+    try {
+      const response = await apiClient.get('/api/users/me');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.detail || '사용자 정보 조회 실패';
+    }
+  },
+
+  // 사용자 정보 수정
+  updateProfile: async (updateData) => {
+    try {
+      const response = await apiClient.put('/api/users/me', updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.detail || '프로필 수정 실패';
+    }
+  },
+
+  // 비밀번호 변경
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await apiClient.put('/api/users/me/password', {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.detail || '비밀번호 변경 실패';
+    }
+  },
+
+  // 회원탈퇴
+  deleteAccount: async () => {
+    try {
+      const response = await apiClient.delete('/api/users/me');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.detail || '회원탈퇴 실패';
+    }
+  }
+};
 ```
 
 ---

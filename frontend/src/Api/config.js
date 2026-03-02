@@ -2,7 +2,7 @@
  * Mechuri 글로벌 설정 파일 (컨트롤 타워)
  * 접속 환경이 바뀔 때 SERVER_IP만 수정하면 모든 파일에 즉시 적용됩니다.
  */
-const SERVER_IP = '192.168.219.104'; 
+const SERVER_IP = '192.168.0.4'; 
 const PORT = '8000';
 const BASE_URL = `http://${SERVER_IP}:${PORT}`;
 

@@ -134,3 +134,18 @@ class RecommendationFeedback(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("UserAccount", back_populates="feedbacks")
+
+
+# 2026-03-03 models.py추가
+class Restaurant(Base):
+    __tablename__ = "restaurants"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    address = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    category_1 = Column(String)
+    category_2 = Column(String)
+    distance = Column(Integer)
+    walking_time = Column(Integer)

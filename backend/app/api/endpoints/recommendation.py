@@ -210,9 +210,13 @@ def get_recommendations_get(
     final_items = []
     for score, menu, reason in scored_items[:3]:
         # [추가] 메뉴 카테고리와 똑같은 식당 정보를 DB에서 찾아옵니다.
-        restaurant = db.query(models.Restaurant).filter(
-            models.Restaurant.category_1 == menu.category
-        ).first()
+        try:
+            restaurant = db.query(models.Restaurant).filter(
+                models.Restaurant.category_1 == menu.category
+            ).first()
+        except Exception as e:
+            print(f" Restaurant 조회 오류: {e}")
+            restaurant = None
 
         description = reason or f"오늘 날씨에 어울리는 {menu.category} 메뉴를 추천해요!"
         
@@ -359,9 +363,13 @@ def get_recommendations(
     for score, menu in top_3:
         # [여기서부터 추가되는 핵심 코드]
         # 메뉴 카테고리와 일치하는 식당을 사장님 DB에서 하나 가져옵니다.
-        restaurant = db.query(models.Restaurant).filter(
-            models.Restaurant.category_1 == menu.category
-        ).first()
+        try:
+            restaurant = db.query(models.Restaurant).filter(
+                models.Restaurant.category_1 == menu.category
+            ).first()
+        except Exception as e:
+            print(f"⚠️ Restaurant 조회 오류: {e}")
+            restaurant = None
 
         match_rate = min(99, int(score)) if score < 100 else 99
         spicy = menu.details.spicy_level if menu.details else 0

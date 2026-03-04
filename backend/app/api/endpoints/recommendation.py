@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import random
 from datetime import datetime
+import math
 
 from ...database import get_db
 from ... import models, schemas, crud
@@ -208,7 +209,13 @@ def get_recommendations_get(
     # 상위 3개 선택
     final_items = []
     for score, menu, reason in scored_items[:3]:
+        # [추가] 메뉴 카테고리와 똑같은 식당 정보를 DB에서 찾아옵니다.
+        restaurant = db.query(models.Restaurant).filter(
+            models.Restaurant.category_1 == menu.category
+        ).first()
+
         description = reason or f"오늘 날씨에 어울리는 {menu.category} 메뉴를 추천해요!"
+        
         final_items.append(schemas.MenuRecommendation(
             menu_name=menu.menu_name,
             category=menu.category,
@@ -221,7 +228,8 @@ def get_recommendations_get(
                 texture=menu.details.texture if menu.details else "일반적",
                 rating=menu.details.real_satisfaction_score if menu.details else 0.0
             ),
-            restaurant_info=None
+            # [수정] None을 빼고, 위에서 찾은 restaurant 변수를 넣어줍니다!
+            restaurant_info=restaurant
         ))
     
     return final_items
@@ -239,6 +247,8 @@ def get_recommendations(
     user_id = current_user.user_id
     user_profile = current_user.profile # 알고리즘에 전달할 유저 성향 데이터
 
+    
+    
     if not user_profile:
         raise HTTPException(status_code=404, detail="사용자 성향 프로필을 찾을 수 없습니다.")
 
@@ -344,8 +354,15 @@ def get_recommendations(
         print("⚠️ 사용자 히스토리 없음 - 새로 생성")
 
     # 4. 프론트엔드 규격 변환 (메뉴 정보만 포함)
+    # 4. 프론트엔드 규격 변환 (여기를 찾으세요!)
     results = []
     for score, menu in top_3:
+        # [여기서부터 추가되는 핵심 코드]
+        # 메뉴 카테고리와 일치하는 식당을 사장님 DB에서 하나 가져옵니다.
+        restaurant = db.query(models.Restaurant).filter(
+            models.Restaurant.category_1 == menu.category
+        ).first()
+
         match_rate = min(99, int(score)) if score < 100 else 99
         spicy = menu.details.spicy_level if menu.details else 0
         texture = menu.details.texture if menu.details else "일반적"
@@ -356,7 +373,7 @@ def get_recommendations(
                 menu_name=menu.menu_name,
                 category=menu.category,
                 image_url=menu.image_url or "https://via.placeholder.com/150",
-                price=menu.price,  # 메뉴 가격 직접 사용
+                price=menu.price,
                 match_rate=match_rate,
                 description=generate_recommendation_reason(menu, weather_data, user=current_user, db=db) or f"오늘 날씨에 어울리는 {menu.category} 메뉴를 추천해요!",
                 details=schemas.MenuRecommendationDetail(
@@ -364,11 +381,12 @@ def get_recommendations(
                     texture=texture,
                     rating=rating
                 ),
-                # 식당 정보 제거
-                restaurant_info=None
+                # [수정] None 대신 위에서 찾은 restaurant 변수를 넣어줍니다.
+                restaurant_info=restaurant
             )
         )
     return results
+   
 
 @router.post("/select/{menu_id}")
 def select_menu(
@@ -473,3 +491,66 @@ def submit_feedback(
     if not updated_history:
          raise HTTPException(status_code=404, detail="기록을 찾을 수 없습니다.")
     return {"message": "피드백이 반영되었습니다."}
+
+def get_distance(lat1, lon1, lat2, lon2):
+    R = 6371e3 # 지구 반지름 (미터)
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = math.sin(delta_phi / 2) * math.sin(delta_phi / 2) + \
+        math.cos(phi1) * math.cos(phi2) * \
+        math.sin(delta_lambda / 2) * math.sin(delta_lambda / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c # 미터(m) 단위 결과
+
+#2026-03-03 추가
+# 중복 없이 상위 5개만 골라냅니다.
+# 📍 주변 5곳 조회 API (실시간 거리 계산 포함)
+@router.get("/nearby", response_model=List[schemas.RestaurantBase])
+def get_nearby_restaurants(
+    lat: float, 
+    lon: float, 
+    db: Session = Depends(get_db)
+):
+    # 1. DB에서 모든 식당 데이터를 가져옵니다.
+    all_restaurants = db.query(models.Restaurant).all()
+    
+    # 2. 각 식당별로 실시간 거리를 계산해서 리스트에 담습니다.
+    restaurant_with_distance = []
+    for res in all_restaurants:
+        dist = get_distance(lat, lon, res.latitude, res.longitude)
+        restaurant_with_distance.append((dist, res))
+
+    # 3. 거리순(가까운 순)으로 정렬합니다.
+    restaurant_with_distance.sort(key=lambda x: x[0])
+
+    # 4. 중복 없이 상위 5개만 골라내며 데이터를 가공합니다.
+    unique_5 = []
+    seen_names = set()
+    
+    for dist, res in restaurant_with_distance:
+        if res.name not in seen_names:
+            # 실시간 거리(m)와 도보 시간(분) 계산
+            calculated_dist = int(dist)
+            calculated_time = max(1, int(dist / 80))
+            
+            # 딕셔너리 형태로 만들어 안전하게 반환합니다.
+            restaurant_data = {
+                "name": res.name,
+                "category_1": res.category_1,
+                "address": res.address,
+                "latitude": res.latitude,
+                "longitude": res.longitude,
+                "distance": calculated_dist,
+                "walking_time": calculated_time
+            }
+            
+            unique_5.append(restaurant_data)
+            seen_names.add(res.name)
+            
+        if len(unique_5) == 5:
+            break
+            
+    return unique_5

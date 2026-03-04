@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, JSON, Enum
 from sqlalchemy.orm import relationship
-from .database_railway import Base
+from .database_mysql import Base
 from datetime import datetime
 from enum import Enum as PyEnum
 
@@ -78,9 +78,9 @@ class UserAccount(Base):
     hashed_password = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    profile = relationship("UserProfile", back_populates="account", uselist=False, lazy="joined")
-    histories = relationship("UserHistory", back_populates="user", lazy="joined")
-    feedbacks = relationship("RecommendationFeedback", back_populates="user", lazy="joined")
+    profile = relationship("UserProfile", back_populates="account", uselist=False)
+    histories = relationship("UserHistory", back_populates="user")
+    feedbacks = relationship("RecommendationFeedback", back_populates="user")
 
 # --- [4. UserProfile (성향 데이터)] ---
 class UserProfile(Base):

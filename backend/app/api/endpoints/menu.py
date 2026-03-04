@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...database_railway import get_db # 기존 main이나 database에 정의된 get_db 사용 권장
+from ...database import get_db # 기존 main이나 database에 정의된 get_db 사용 권장
 from ... import crud, schemas
 
 router = APIRouter()
@@ -13,11 +13,9 @@ def create_new_menu(menu: schemas.MenuCreate, db: Session = Depends(get_db)):
 
 # [수정] response_model을 list[schemas.Menu]로 변경
 @router.get("/", response_model=list[schemas.Menu])
-def read_menus(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def read_menus(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """등록된 모든 메뉴 리스트를 가져옵니다."""
-    # skip=0일 때 문제가 있으므로, skip이 0이면 1로 변경
-    actual_skip = skip if skip > 0 else 1
-    menus = crud.get_menus(db, skip=actual_skip, limit=limit)
+    menus = crud.get_menus(db, skip=skip, limit=limit)
     return menus
 
 # [수정] store_id를 menu_id로 명칭 통일

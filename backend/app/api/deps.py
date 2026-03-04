@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
 # 프로젝트 구조에 맞게 수정된 import (상대 경로 혹은 절대 경로)
-from ..database_mysql import get_db
+from ..database_railway import get_db
 from .. import models, crud
 # 여기서 방금 보여주신 보안 파일의 변수와 함수를 가져옵니다
 from ..core.security import SECRET_KEY, ALGORITHM 

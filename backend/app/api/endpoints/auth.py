@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm # [추가]
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
-from ...database_mysql import get_db
+from ...database_railway import get_db
 from ... import crud, schemas, models
 from ...core.security import verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..deps import get_current_user

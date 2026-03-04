@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .config import settings
-from ..database_mysql import get_db
+from ..database_railway import get_db
 from .. import models
 
 # 1. bcrypt의 72바이트 제한을 안전하게 처리하기 위한 설정

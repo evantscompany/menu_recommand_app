@@ -37,25 +37,11 @@ def get_current_user(
             
     except JWTError:
         raise credentials_exception
-    
+
     # 2. 해독된 username으로 DB에서 실제 유저(Account) 정보를 가져옴
     user = crud.get_user_by_username(db, username=username)
     
     if user is None:
         raise credentials_exception
-        
-    # 3. profile 관계를 명시적으로 로드하여 None 방지
-    if hasattr(user, 'profile') and user.profile is None:
-        # profile이 없으면 빈 UserProfile 객체 생성
-        from .. import models
-        user.profile = models.UserProfile(
-            user_id=user.user_id,
-            dietary_label="none",
-            allergies="",
-            spicy_threshold=3,
-            saltiness_preference=3,
-            lunch_budget_max=12000,
-            is_adventurous=True
-        )
         
     return user

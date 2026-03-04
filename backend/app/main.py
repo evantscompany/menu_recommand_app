@@ -4,7 +4,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from app.database_railway import engine
 import app.models as models
 # [수정] auth 라우터를 추가로 불러옵니다.
-from app.api.endpoints import user, recommendation, menu, auth
+from app.api.endpoints import user, recommendation, menu, auth, weather
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -43,6 +43,9 @@ app.include_router(user.router, prefix="/api/users", tags=["Users"])
 
 # 4. 추천 시스템 관련
 app.include_router(recommendation.router, prefix="/api/recommend", tags=["Recommendation"])
+
+# 5. 날씨 정보 관련
+app.include_router(weather.router, prefix="/api/weather", tags=["Weather"])
 
 if __name__ == "__main__":
     import uvicorn

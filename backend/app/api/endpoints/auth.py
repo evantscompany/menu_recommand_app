@@ -31,13 +31,25 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="이미 사용 중인 이메일입니다."
         )
     
-    # ← [추가] 닉네임 중복 체크
-    db_nickname = db.query(models.UserAccount).filter(models.UserAccount.nickname == user.nickname).first()
-    if db_nickname:
-        raise HTTPException(
-            status_code=400,
-            detail="이미 사용 중인 닉네임입니다."
-        )
+    # ← [수정] 닉네임 중복 시 새 닉네임 자동 생성
+    original_nickname = user.nickname
+    counter = 1
+    
+    while True:
+        db_nickname = db.query(models.UserAccount).filter(models.UserAccount.nickname == user.nickname).first()
+        if not db_nickname:
+            break  # 중복 없음
+        
+        # 새 닉네임 생성: 원래닉네임_숫자
+        user.nickname = f"{original_nickname}{counter}"
+        counter += 1
+        
+        # 무한 루프 방지 (최대 100번 시도)
+        if counter > 100:
+            raise HTTPException(
+                status_code=400,
+                detail="닉네임 생성에 실패했습니다. 다른 닉네임을 시도해주세요."
+            )
 
     return crud.create_user(db=db, user=user)
 

@@ -1,10 +1,27 @@
+# 최소한의 필요한 모듈만 포함한 requirements.txt
+
+# FastAPI 핵심
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+
+# 데이터베이스
 sqlalchemy==2.0.23
-pydantic==2.5.0
-python-multipart==0.0.6
+pymysql==1.1.0
+
+# 인증
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-requests==2.31.0
+python-multipart==0.0.6
+
+# 환경 변수
 python-dotenv==1.0.0
-pymysql==1.1.0
+
+# HTTP 요청
+requests==2.31.0
+
+# Pydantic (FastAPI 의존)
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 날씨 API
+aiohttp==3.9.1

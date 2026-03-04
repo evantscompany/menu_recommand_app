@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, JSON, Enum
 from sqlalchemy.orm import relationship
-from .database import Base
+from .database_mysql import Base
 from datetime import datetime
 from enum import Enum as PyEnum
 
@@ -33,13 +33,13 @@ class Menu(Base):
     __tablename__ = "menus"
 
     menu_id = Column(Integer, primary_key=True, index=True)
-    menu_name = Column(String, nullable=False)
-    category = Column(String)
-    image_url = Column(String)
+    menu_name = Column(String(255), nullable=False)
+    category = Column(String(100))
+    image_url = Column(String(500))
     price = Column(Integer, default=8000)  # 가격 정보 직접 추가
     
     # 추천 알고리즘용 필드 (유지)
-    matching_weather = Column(String)
+    matching_weather = Column(String(100))
     suitable_ground_size = Column(Integer)
     is_quick_meal = Column(Boolean)
     is_lunch_available = Column(Boolean, default=True)
@@ -58,8 +58,8 @@ class MenuDetail(Base):
     spicy_level = Column(Integer)
     saltiness_level = Column(Integer)
     heaviness = Column(Float)
-    serving_temperature = Column(String)
-    texture = Column(String)
+    serving_temperature = Column(String(50))
+    texture = Column(String(50))
 
     revisit_rate = Column(Float)
     avg_waiting_time = Column(Integer)
@@ -72,10 +72,10 @@ class MenuDetail(Base):
 class UserAccount(Base):
     __tablename__ = "user_accounts"
     user_id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    nickname = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    nickname = Column(String(100), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("UserProfile", back_populates="account", uselist=False)
@@ -88,8 +88,8 @@ class UserProfile(Base):
     profile_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user_accounts.user_id"), unique=True)
     
-    dietary_label = Column(String, default="none")
-    allergies = Column(String, nullable=True)
+    dietary_label = Column(String(50), default="none")
+    allergies = Column(String(255), nullable=True)
     spicy_threshold = Column(Integer, default=3)
     saltiness_preference = Column(Integer, default=3)
     lunch_budget_max = Column(Integer, default=12000)
@@ -108,13 +108,13 @@ class UserHistory(Base):
     # 방문 및 피드백 데이터
     last_visit_date = Column(DateTime, default=datetime.utcnow)
     visit_count = Column(Integer, default=1)
-    last_eaten_category = Column(String)
-    last_eaten_menu = Column(String)  # 마지막으로 먹은 메뉴 이름
+    last_eaten_category = Column(String(100))
+    last_eaten_menu = Column(String(255))  # 마지막으로 먹은 메뉴 이름
     recent_menus = Column(JSON)  # 최근 추천된 메뉴 목록 (JSON 배열)
     
     user_rating = Column(Integer, nullable=True)
     is_revisit_intended = Column(Boolean, default=True)
-    feedback_comment = Column(String, nullable=True)
+    feedback_comment = Column(String(500), nullable=True)
 
     # 관계 설정
     menu = relationship("Menu", back_populates="visits")
@@ -126,9 +126,9 @@ class RecommendationFeedback(Base):
 
     feedback_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user_accounts.user_id"), index=True)
-    menu_name = Column(String, nullable=False)
-    feedback_type = Column(String)  # String으로 유지하여 기존 데이터 호환성 확보
-    category = Column(String)
+    menu_name = Column(String(255), nullable=False)
+    feedback_type = Column(String(50))  # String으로 유지하여 기존 데이터 호환성 확보
+    category = Column(String(100))
     score = Column(Float)
 
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -141,11 +141,11 @@ class Restaurant(Base):
     __tablename__ = "restaurants"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    address = Column(String)
+    name = Column(String(255), nullable=False)
+    address = Column(String(500))
     latitude = Column(Float)
     longitude = Column(Float)
-    category_1 = Column(String)
-    category_2 = Column(String)
+    category_1 = Column(String(100))
+    category_2 = Column(String(100))
     distance = Column(Integer)
     walking_time = Column(Integer)

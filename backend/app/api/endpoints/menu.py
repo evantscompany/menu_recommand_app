@@ -13,7 +13,7 @@ def create_new_menu(menu: schemas.MenuCreate, db: Session = Depends(get_db)):
 
 # [수정] response_model을 list[schemas.Menu]로 변경
 @router.get("/", response_model=list[schemas.Menu])
-def read_menus(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_menus(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """등록된 모든 메뉴 리스트를 가져옵니다."""
     # skip=0일 때 문제가 있으므로, skip이 0이면 1로 변경
     actual_skip = skip if skip > 0 else 1

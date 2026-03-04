@@ -100,6 +100,55 @@ def get_recommendations_get(
             )
         ]
 
+@router.get("/", response_model=List[schemas.MenuRecommendation])
+def get_recommendations(
+    current_user: models.UserAccount = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    GET 방식 추천 API
+    """
+    # 인증된 사용자만 추천 가능
+    user_id = current_user.user_id
+    
+    try:
+        # 1. 간단한 메뉴 조회 (limit 50으로 제한)
+        menus = db.query(models.Menu)\
+            .filter(models.Menu.is_lunch_available == True)\
+            .limit(50)\
+            .all()
+        
+        # 2. 랜덤으로 3개 선택
+        if len(menus) >= 3:
+            selected_menus = random.sample(menus, 3)
+        else:
+            selected_menus = menus
+        
+        # 3. 추천 결과 생성
+        recommendations = []
+        for menu in selected_menus:
+            recommendation = schemas.MenuRecommendation(
+                menu_id=menu.menu_id,
+                menu_name=menu.menu_name,
+                category=menu.category,
+                price=menu.price,
+                image_url=menu.image_url,
+                match_rate=85,  # 필수 필드 추가
+                description=f"{menu.menu_name}을 추천합니다!",
+                details=schemas.MenuRecommendationDetail(
+                    spicy_level=2,
+                    texture="일반적",
+                    rating=4.0
+                ),
+                restaurant_info=None
+            )
+            recommendations.append(recommendation)
+        
+        return recommendations
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"추천 중 오류 발생: {str(e)}")
+
 @router.post("/", response_model=List[schemas.MenuRecommendation])
 def get_recommendations(
     current_user: models.UserAccount = Depends(get_current_user), 

@@ -1,7 +1,7 @@
 # 기존 설치된 모듈 버전 그대로 사용
 fastapi==0.128.0
 uvicorn==0.40.0
-SQLAlchemy==1.4.53
+SQLAlchemy==2.0.23
 pydantic==2.12.5
 python-multipart==0.0.6
 python-jose==3.5.0

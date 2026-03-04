@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from app.database import engine
+from app.database_mysql import engine
 import app.models as models
 # [수정] auth 라우터를 추가로 불러옵니다.
 from app.api.endpoints import user, recommendation, menu, auth

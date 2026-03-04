@@ -78,7 +78,7 @@ class UserAccount(Base):
     hashed_password = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    profile = relationship("UserProfile", back_populates="account", uselist=False)
+    profile = relationship("UserProfile", back_populates="account", uselist=False, lazy="joined")
     histories = relationship("UserHistory", back_populates="user", lazy="joined")
     feedbacks = relationship("RecommendationFeedback", back_populates="user", lazy="joined")
 

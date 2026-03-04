@@ -79,8 +79,8 @@ class UserAccount(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("UserProfile", back_populates="account", uselist=False)
-    histories = relationship("UserHistory", back_populates="user")
-    feedbacks = relationship("RecommendationFeedback", back_populates="user")
+    histories = relationship("UserHistory", back_populates="user", lazy="joined")
+    feedbacks = relationship("RecommendationFeedback", back_populates="user", lazy="joined")
 
 # --- [4. UserProfile (성향 데이터)] ---
 class UserProfile(Base):

@@ -5,7 +5,7 @@ import random
 from datetime import datetime
 import math
 
-from ...database import get_db
+from ...database_mysql import get_db
 from ... import models, schemas, crud
 from ...core.algorithm import calculate_recommendation_score, generate_recommendation_reason
 # 인증 Dependency 가져오기

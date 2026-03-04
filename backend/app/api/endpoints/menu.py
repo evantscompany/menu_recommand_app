@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...database import get_db # 기존 main이나 database에 정의된 get_db 사용 권장
+from ...database_mysql import get_db # 기존 main이나 database에 정의된 get_db 사용 권장
 from ... import crud, schemas
 
 router = APIRouter()

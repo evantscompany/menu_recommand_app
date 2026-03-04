@@ -31,7 +31,12 @@ def create_menu(db: Session, menu: schemas.MenuCreate):
     return db_menu
 
 def get_menus(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Menu).offset(skip).limit(limit).all()
+    query = db.query(models.Menu)
+    if skip > 0:
+        query = query.offset(skip)
+    if limit > 0:
+        query = query.limit(limit)
+    return query.all()
 
 
 # --- [2. 사용자 관련 (UserAccount & Profile) ] ---

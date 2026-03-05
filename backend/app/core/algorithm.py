@@ -3,7 +3,7 @@ import math
 import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
+from app.database_mysql import SessionLocal
 from app import models
 from app.models import FeedbackType
 from collections import defaultdict, Counter

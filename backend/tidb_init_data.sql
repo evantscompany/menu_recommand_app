@@ -40,43 +40,43 @@ CREATE TABLE IF NOT EXISTS menu_details (
 
 -- 메뉴 데이터 삽입
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (1, '김치찌개', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (1, '김치찌개', '한식', '', 11000, 'Cold,Rainy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (2, '된장찌개', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (2, '된장찌개', '한식', '', 11000, 'Cold,Rainy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (3, '순두부찌개', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (3, '순두부찌개', '한식', '', 11000, 'Cold,Rainy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (4, '부대찌개', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (4, '부대찌개', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (5, '청국장', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (5, '청국장', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (6, '동태찌개', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (6, '동태찌개', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (7, '알탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (7, '알탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (8, '대구탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (8, '대구탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (9, '매운탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (9, '매운탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (10, '해물탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (10, '해물탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (11, '추어탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (11, '추어탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (12, '육개장', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (12, '육개장', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (13, '설렁탕', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (13, '설렁탕', '한식', '', 11000, 'Cold,Rainy,Snowy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
 VALUES (14, '곰탕', '한식', '', 11000, '', NULL, 0, 1);
@@ -1048,25 +1048,25 @@ INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weat
 VALUES (336, '프라페', '한식', '', 11000, '', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (337, '버블티', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (337, '버블티', '한식', '', 11000, 'Clear', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (338, '흑당버블티', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (338, '흑당버블티', '한식', '', 11000, 'Clear', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (339, '과일주스', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (339, '과일주스', '한식', '', 11000, 'Clear', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (340, '레몬에이드', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (340, '레몬에이드', '한식', '', 11000, 'Clear', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (341, '자몽에이드', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (341, '자몽에이드', '한식', '', 11000, 'Clear', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (342, '커피', '카페', '', 6000, '', NULL, 0, 1);
+VALUES (342, '커피', '카페', '', 6000, 'Clear,Cloudy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
-VALUES (343, '아메리카노', '한식', '', 11000, '', NULL, 0, 1);
+VALUES (343, '아메리카노', '한식', '', 11000, 'Clear,Cloudy', NULL, 0, 1);
 
 INSERT INTO menus (menu_id, menu_name, category, image_url, price, matching_weather, suitable_ground_size, is_quick_meal, is_lunch_available) 
 VALUES (344, '카페라떼', '한식', '', 11000, '', NULL, 0, 1);
@@ -2146,6 +2146,359 @@ INSERT INTO menu_details (menu_id, spicy_level, saltiness_level, heaviness, serv
 VALUES (351, 1, 2, 0.4, 'hot', 'normal', 0.82, 12, 0.05, 4.3);
 
 
+-- UPDATE statements for matching_weather column
+-- Generated from weather-menu mapping data
+
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = 'BLT샌드위치';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = 'LA갈비';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '가브리살';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '가츠동';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '간장새우';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '간장치킨';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '간짜장';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '갈매기살';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '갈비탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '갈치구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '갈치조림';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '감자탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '게살볶음밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '계란토스트';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고구마돈까스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고구마튀김';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고기만두';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고등어구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고등어조림';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고르곤졸라피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '고추잡채';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '곰탕';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '과일주스';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '광어회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '국물떡볶이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '군만두';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '굴국밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '굴비구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '규동';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '그릭샐러드';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '그린커리';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '김밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '김치라면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '김치만두';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '김치볶음밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '김치찌개';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '까르보나라';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '깐풍기';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '깐풍육';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '꼬리곰탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '꽁치구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '꽁치조림';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '나시고렝';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '낙지덮밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '낙지볶음';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '난';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '내장탕';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '냄비우동';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '냉면';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '냉모밀';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '냉우동';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '냉채족발';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '녹차라떼';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '농어회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '닭갈비';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '닭강정';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '닭개장';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '닭곰탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '닭똥집';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '닭발';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '닭백숙';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '닭볶음탕';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '대구탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '대하구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '덮밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '도가니탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '도넛';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '도미회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '돈까스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '돈까스김밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '돈부리';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '돈코츠라멘';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '동태찌개';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '돼지갈비';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '돼지국밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '된장찌개';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '들깨칼국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '딤섬';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '따로국밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '떡볶이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '또띠아';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '똠얌꿍';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '라멘';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '라면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '라자냐';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '레드커리';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '레몬에이드';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '로제떡볶이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '롤케이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '리조또';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '립아이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '마늘족발';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '마늘치킨';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '마라룽샤';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '마라샹궈';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '마라탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '마르게리타피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '마카롱';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '마파두부';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '막국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '만두';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '망고빙수';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '매운탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '머핀';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '메밀국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '멸치김밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '모둠초밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '모밀';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '목살';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '물냉면';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '물막국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '물만두';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '물회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '미고렝';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '미네스트로네';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '미소라멘';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '미역국';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '밀면';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '밀크쉐이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '바게트';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '바닐라라떼';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '바지락칼국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '반미';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '방어회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '백순대';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '백짬뽕';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '버블티';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '버섯리조또';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '버터치킨커리';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '베이글';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '보쌈';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '볶음짬뽕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '봉골레파스타';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '부대찌개';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '북어국';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '분짜';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '불고기';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '불고기버거';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '불고기피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '불족발';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '브라우니';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '브루스케타';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '브리또';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '비빔국수';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '비빔냉면';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '비빔막국수';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '빙수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '빵';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '뼈해장국';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '사케동';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '산더미불고기';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '삼겹살';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '삼계탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '삼선짜장';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '삼선짬뽕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '삼치구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '새우버거';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '새우볶음밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '새우튀김';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '샌드위치';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '샐러드';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '생선까스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '생선조림';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '생크림케이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '샤오롱바오';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '선지해장국';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '설렁탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '소갈비';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '소머리국밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '소바';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '손칼국수';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '쇼유라멘';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '수육국밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '수제버거';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '수프카레';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '순대';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '순대국';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '순대볶음';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '순두부찌개';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '순살치킨';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '숯불치킨';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '스무디';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '스시롤';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '스테이크';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '시래기국';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '시저샐러드';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '식빵';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '쌀국수';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '아메리카노';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '아이스크림';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '안심스테이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '알리오올리오';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '알밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '알탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '야채김밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '야채순대';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '야채튀김';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '야키우동';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '양갈비';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '양꼬치';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '양념갈비';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '양념새우';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '양념치킨';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '양송이스프';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '양장피';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '양평해장국';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '어묵우동';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '언양불고기';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '에비동';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '에스프레소';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '엔칠라다';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '연어샐러드';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '연어포케';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '연어회';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '열무국수';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '오리백숙';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '오리주물럭';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '오리훈제';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '오삼불고기';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '오일파스타';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '오징어덮밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '오징어튀김';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '와플';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '왕만두';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '요거트아이스크림';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '우거지탕';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '우동';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '우럭회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '월남쌈';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '유린기';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '육개장';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '일본식카레';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '임연수구이';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '자몽에이드';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '잔치국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '잡채밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '잡탕밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '장어구이';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '장터국밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '제육덮밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '제육볶음';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '젤라또';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '조기구이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '족발';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '중국식볶음밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '짜장떡볶이';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '짜장라면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '짜장면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '짜장밥';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '짬뽕';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '짬뽕밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '쫄면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '쭈꾸미볶음';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '찐만두';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '찰순대';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '참치김밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '참치포케';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '참치회';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '채끝스테이크';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '청국장';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '초밥';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '초코라떼';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '초코빙수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '초코칩쿠키';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '초코케이크';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '추어탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '춘권';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '츠케멘';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치아바타';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '치아바타샌드위치';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치즈김밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치즈돈까스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치즈버거';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치즈케이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치즈피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치킨까스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '치킨버거';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '치킨샐러드';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '카라멜마끼아또';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '카레라이스';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '카오팟';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '카츠카레';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '카페라떼';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '카푸치노';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '칼국수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '커리';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '커피';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '케이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '코다리조림';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '콘도그';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '콘스프';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '콜드브루';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '콤비네이션피자';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '콥샐러드';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '콩국수';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '콩나물국밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '쿠키';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '퀘사디아';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '크레페';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '크루아상';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '크림스프';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '크림파스타';
+UPDATE menus SET matching_weather = 'Mist' WHERE menu_name = '클램차우더';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '클럽샌드위치';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '타코';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '탄두리치킨';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '탄탄멘';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '탕수육';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '텐동';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '토마토파스타';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '토마호크스테이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '토스트';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '튀김';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '트러플리조또';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '티라미수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '티본스테이크';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '파니니';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '파닭';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '파스타';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '파히타';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '판모밀';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '팔보채';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '팟타이';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '팥빙수';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '팬케이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '페퍼로니피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '포카치아';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '포케';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '프라페';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '프레첼';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '프렌치토스트';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '피자';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '하와이안포케';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '하와이안피자';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '함박스테이크';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '핫도그';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '항정살';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '해물라면';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '해물리조또';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '해물탕';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '해물파스타';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '햄버거';
+UPDATE menus SET matching_weather = 'Rain' WHERE menu_name = '황태국';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '회';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '회냉면';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '회덮밥';
+UPDATE menus SET matching_weather = 'Clouds' WHERE menu_name = '후라이드치킨';
+UPDATE menus SET matching_weather = 'Snow' WHERE menu_name = '훠궈';
+UPDATE menus SET matching_weather = 'Clear' WHERE menu_name = '흑당버블티';
+
 -- 인덱스 생성 (성능 최적화)
 CREATE INDEX IF NOT EXISTS idx_menus_category ON menus(category);
 CREATE INDEX IF NOT EXISTS idx_menus_name ON menus(menu_name);
@@ -2155,3 +2508,5 @@ CREATE INDEX IF NOT EXISTS idx_menu_details_menu_id ON menu_details(menu_id);
 -- 데이터 추출 완료
 -- 총 메뉴 수: 351
 -- 총 상세 정보 수: 351
+
+

@@ -10,8 +10,8 @@ load_dotenv()
 # TiDB Cloud MySQL 연결 정보
 TIDB_HOST = os.getenv("TIDB_HOST", "gateway01.ap-northeast-1.prod.aws.tidbcloud.com")
 TIDB_PORT = os.getenv("TIDB_PORT", "4000")
-TIDB_USER = os.getenv("TIDB_USER", "3bJdto8FKWk47Fu.root")
-TIDB_PASSWORD = os.getenv("TIDB_PASSWORD", "NWOZOcYDO8W5nMk2")
+TIDB_USER = os.getenv("TIDB_USER", "4R3uzcejsPmMq28.root")
+TIDB_PASSWORD = os.getenv("TIDB_PASSWORD", "MYtryu4hzULop2t1")
 TIDB_DATABASE = os.getenv("TIDB_DATABASE", "test")
 
 # TiDB Cloud 사용자 이름 형식: {prefix}.{username}

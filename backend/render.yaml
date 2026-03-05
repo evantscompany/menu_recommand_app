@@ -16,9 +16,9 @@ services:
       - key: TIDB_PORT
         value: 4000
       - key: TIDB_USER
-        value: 3bJdto8FKWk47Fu.root
+        value: 4R3uzcejsPmMq28.root
       - key: TIDB_PASSWORD
-        value: NWOZOcYDO8W5nMk2
+        value: MYtryu4hzULop2t1
       - key: TIDB_DATABASE
         value: test
       

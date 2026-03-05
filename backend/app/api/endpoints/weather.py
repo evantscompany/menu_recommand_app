@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import Dict
 
-from ...database_railway import get_db
+from ...database_mysql import get_db
 from ...core.weather_service import weather_service
 
 router = APIRouter()

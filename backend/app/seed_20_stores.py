@@ -1,7 +1,6 @@
-import sqlite3
 from datetime import datetime
 import os
-from app.database import engine
+from app.database_mysql import engine, SessionLocal
 import app.models as models
 
 #1. 강제 테이블 생성

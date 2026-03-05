@@ -768,37 +768,13 @@ def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, hist
             elif feedback_type in FeedbackType.get_neutral_types():
                 score += 2   # 중립적 피드백 미세 조정
 
-    # --- [Step 6] 고도화된 알고리즘 보너스 ---
+    # --- [Step 6] 고도화된 알고리즘 보너스 (간소화) ---
+    # 성능 최적화를 위해 복잡한 전략 클래스 비활성화
+    # Free tier에서도 빠른 응답을 위해 핵심 기능만 유지
     
-    # 패턴 마이닝 전략
-    pattern_bonus = PatternMiningStrategy.calculate_bonus(user, menu, db)
-    score += pattern_bonus
-    if pattern_bonus > 0:
-        print(f" {menu.menu_name}: 패턴 마이닝 보너스 (+{pattern_bonus})")
-    
-    # 행동 통찰 전략
-    behavioral_bonus = BehavioralInsightsStrategy.calculate_bonus(user, menu, db)
-    score += behavioral_bonus
-    if behavioral_bonus > 0:
-        print(f" {menu.menu_name}: 행동 통찰 보너스 (+{behavioral_bonus})")
-    
-    # 시간 동학 전략
-    temporal_bonus = TemporalDynamicsStrategy.calculate_bonus(user, menu, db)
-    score += temporal_bonus
-    if temporal_bonus > 0:
-        print(f" {menu.menu_name}: 시간 동학 보너스 (+{temporal_bonus})")
-    
-    # 사회적 학습 전략
-    social_bonus = SocialLearningStrategy.calculate_bonus(user, menu, db)
-    score += social_bonus
-    if social_bonus > 0:
-        print(f" {menu.menu_name}: 사회적 학습 보너스 (+{social_bonus})")
-    
-    # 놀라움 생성 전략
-    surprise_bonus = SurpriseGenerationStrategy.calculate_bonus(user, menu, db)
-    score += surprise_bonus
-    if surprise_bonus > 0:
-        print(f" {menu.menu_name}: 놀라움 생성 보너스 (+{surprise_bonus})")
+    # 패턴 마이닝, 행동 통찰, 시간 동학, 사회적 학습, 놀라움 생성 전략은
+    # 사용자 데이터가 충분히 쌓인 후 활성화 권장
+    pass
 
     # --- [Step 7] 신뢰도 및 통계 보정 ---
     # 평점 5점 만점 기준 보너스

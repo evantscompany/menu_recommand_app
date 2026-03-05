@@ -3,10 +3,11 @@ import math
 import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from app.database import SessionLocal 
+from app.database import SessionLocal
 from app import models
 from app.models import FeedbackType
 from collections import defaultdict, Counter
+from .weather_utils import WeatherMatcher, WeatherType
 
 def get_latest_feedback(db: Session, user_id: int, menu_name: str):
     """
@@ -593,15 +594,31 @@ def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, hist
             score += 10
 
     # --- [Step 4] 실시간 외부 환경 (가점 위주) ---
-    current_weather = weather_data.get("weather", "Clear")
-    current_temp = weather_data.get("temp", 20)
-    is_rainy = weather_data.get("is_rainy", False)
-    is_snowy = weather_data.get("is_snowy", False)
-    is_hot = weather_data.get("is_hot", False)
-    is_cold = weather_data.get("is_cold", False)
-    is_clear = weather_data.get("is_clear", False)
     
-    # 비/눈 오는 날씨 보너스
+    # 날씨 데이터 표준화
+    standardized_weather = WeatherMatcher.parse_weather_data(weather_data)
+    current_weather_type = standardized_weather["weather_type"]
+    current_temp = standardized_weather["temp"]
+    is_rainy = standardized_weather["is_rainy"]
+    is_snowy = standardized_weather["is_snowy"]
+    is_hot = standardized_weather["is_hot"]
+    is_cold = standardized_weather["is_cold"]
+    is_clear = standardized_weather["is_clear"]
+    
+    # 메뉴-날씨 매칭 점수 (새로운 로직)
+    weather_match_bonus = WeatherMatcher.get_weather_score_bonus(menu.category, current_weather_type)
+    if weather_match_bonus > 0:
+        score += weather_match_bonus
+        print(f" {menu.menu_name}: 날씨-메뉴 매칭 보너스 (+{weather_match_bonus})")
+    
+    # DB의 matching_weather 필드 확인
+    if hasattr(menu, 'matching_weather') and menu.matching_weather:
+        is_weather_matched = WeatherMatcher.check_menu_weather_match(menu.matching_weather, current_weather_type)
+        if is_weather_matched:
+            score += 12
+            print(f" {menu.menu_name}: 메뉴 날씨 매칭 보너스 (+12)")
+    
+    # 비/눈 오는 날씨 보너스 (기존 로직 유지)
     if is_rainy or is_snowy:
         if details.texture == "Crispy": 
             score += 8  
@@ -641,13 +658,9 @@ def calculate_recommendation_score(menu, user, daily_inquiry, weather_data, hist
     if is_clear:
         if menu.category in ["샐러드", "디저트", "카페"]: 
             score += 5
-            print(f" {menu.menu_name}: 맑은 날씨 상쾌한 요리 보너스 (+5)")
-        if details.texture == "Fresh": 
-            score += 3
-            print(f" {menu.menu_name}: 맑은 날씨 신선한 요리 보너스 (+3)")
     
     # 습도 반영
-    humidity = weather_data.get("humidity", 50)
+    humidity = standardized_weather.get("humidity", 50)
     if humidity > 70:
         # 습한 날씨: 가벼운 요리 선호
         if (details.heaviness or 0) <= 3.0: 
@@ -842,14 +855,15 @@ def generate_recommendation_reason(menu, weather_data, user, db):
                 return f"'{menu.menu_name}'는 최근 피드백이 다소 아쉽습니다. 다시 도전해보세요!"
     
     # 개선된 날씨 기반 이유
-    weather_desc = weather_data.get("description", "") if weather_data else ""
-    is_rainy = weather_data.get("is_rainy", False) if weather_data else False
-    is_snowy = weather_data.get("is_snowy", False) if weather_data else False
-    is_hot = weather_data.get("is_hot", False) if weather_data else False
-    is_cold = weather_data.get("is_cold", False) if weather_data else False
-    is_clear = weather_data.get("is_clear", False) if weather_data else False
+    standardized_weather = WeatherMatcher.parse_weather_data(weather_data) if weather_data else {}
+    weather_desc = standardized_weather.get("description", "")
+    is_rainy = standardized_weather.get("is_rainy", False)
+    is_snowy = standardized_weather.get("is_snowy", False)
+    is_hot = standardized_weather.get("is_hot", False)
+    is_cold = standardized_weather.get("is_cold", False)
+    is_clear = standardized_weather.get("is_clear", False)
     
-    # 날씨별 추천 이유
+    # 날씨별 추천 이유 (개선된 로직)
     if is_rainy or is_snowy:
         return f"비/눈 오는 날({weather_desc})엔 따끈하고 든든한 {menu.menu_name} 어떠세요?"
     elif is_hot:
@@ -860,11 +874,11 @@ def generate_recommendation_reason(menu, weather_data, user, db):
         return f"맑은 날({weather_desc})엔 상쾌한 {menu.menu_name}이 딱이에요!"
     
     # 습도 기반 이유
-    humidity = weather_data.get("humidity", 50) if weather_data else 50
+    humidity = standardized_weather.get("humidity", 50)
     if humidity > 70:
         return f"습한 날({humidity}%)엔 가벼운 {menu.menu_name}이 좋겠어요!"
     elif humidity < 30:
-        return f"건조한 날({humidity}%)엔 국물 있는 {menu.menu_name}으로 수분 보충!"
+        return f"건조한 날({humidity}%)엔 국물 있는 {menu.menu_name}을 추천해요!"
     
     # 기본 이유
     if menu.details and menu.details.real_satisfaction_score >= 4.5:

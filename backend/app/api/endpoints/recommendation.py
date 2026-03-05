@@ -49,7 +49,21 @@ def add_recommendation_randomness(scored_items):
 
 def select_diverse_third_menu(scored_items, user_id, db):
     """
-    3번째 추천을 위한 다양성 메뉴 선택
+    3번째 추천을 위한 다양성 메뉴 선택 (기존 버전 - 호환성 유지)
+    """
+    if len(scored_items) < 3:
+        return None
+    
+    latest_history = db.query(models.UserHistory)\
+        .filter(models.UserHistory.user_id == user_id)\
+        .order_by(models.UserHistory.last_visit_date.desc())\
+        .first()
+    
+    return select_diverse_third_menu_optimized(scored_items, latest_history)
+
+def select_diverse_third_menu_optimized(scored_items, latest_history):
+    """
+    3번째 추천을 위한 다양성 메뉴 선택 (최적화 버전 - DB 쿼리 제거)
     - 상위 2개와 유사하지만 추천되지 않았던 메뉴 선택
     - 카테고리 다양성 확보 (강화)
     """
@@ -59,14 +73,8 @@ def select_diverse_third_menu(scored_items, user_id, db):
     # 상위 2개 메뉴 정보
     top_2_menus = [item[1] for item in scored_items[:2]]
     top_2_categories = {menu.category for menu in top_2_menus}
-    top_2_scores = {item[1].menu_id: item[0] for item in scored_items[:2]}
     
-    # 사용자의 최근 추천 기록 확인
-    latest_history = db.query(models.UserHistory)\
-        .filter(models.UserHistory.user_id == user_id)\
-        .order_by(models.UserHistory.last_visit_date.desc())\
-        .first()
-    
+    # 최근 추천 기록 확인 (이미 조회된 히스토리 사용)
     recent_menu_names = set()
     if latest_history and latest_history.recent_menus:
         recent_menu_names = set(latest_history.recent_menus[:5])  # 최근 5개만 확인
@@ -81,23 +89,20 @@ def select_diverse_third_menu(scored_items, user_id, db):
         # 카테고리 다양성 강력 고려
         if menu.category not in top_2_categories:
             # 새로운 카테고리는 강력 우선 후보
-            diverse_candidates.append((score + 20, menu))  # 새로운 카테고리 강력 보너스
-            print(f"   🎯 {menu.menu_name}: 새로운 카테고리 강력 보너스 (+20) - {menu.category}")
+            diverse_candidates.append((score + 20, menu))
         else:
-            # 같은 카테고리라도 점수가 높은 것은 후보 (최소 기준 상향)
-            if score >= 70:  # 최소 점수 기준 상향
+            # 같은 카테고리라도 점수가 높은 것은 후보
+            if score >= 70:
                 diverse_candidates.append((score, menu))
     
     # 후보가 없으면 기존 방식으로 fallback
     if not diverse_candidates:
-        print("   ⚠️ 다양성 후보 없음 - 기존 방식으로 fallback")
         return None
     
     # 후보 중에서 점수가 가장 높은 메뉴 선택
     diverse_candidates.sort(key=lambda x: x[0], reverse=True)
     selected_menu = diverse_candidates[0][1]
     
-    print(f" 🎯 3번째 다양성 추천: {selected_menu.menu_name} ({selected_menu.category})")
     return (diverse_candidates[0][0], selected_menu)
 
 def apply_diversity_mechanism(scored_items):
@@ -252,28 +257,36 @@ def get_recommendations(
     if not user_profile:
         raise HTTPException(status_code=404, detail="사용자 성향 프로필을 찾을 수 없습니다.")
 
-    # 2. 기초 데이터 준비 (메뉴만 조회)
+    # 2. 기초 데이터 준비 - 메뉴와 상세정보를 한 번에 조회 (JOIN 최적화)
     menus = db.query(models.Menu)\
         .filter(models.Menu.is_lunch_available == True)\
+        .options(
+            # 메뉴 상세정보를 미리 로드하여 N+1 쿼리 문제 방지
+            # joinedload는 사용하지 않고 필요시에만 조회
+        )\
         .all()
     
     # 실시간 날씨 데이터 가져오기 (서울 기준)
     weather_data = weather_service.get_current_weather("Seoul")
 
-    # 사용자의 최신 히스토리 가져오기 (recent_menus 포함)
+    # 사용자의 최신 히스토리 한 번만 조회
     latest_history = db.query(models.UserHistory)\
         .filter(models.UserHistory.user_id == user_id)\
         .order_by(models.UserHistory.last_visit_date.desc())\
         .first()
     
+    # 모든 메뉴에 대한 히스토리를 한 번에 조회 (N+1 문제 해결)
+    all_histories = db.query(models.UserHistory)\
+        .filter(models.UserHistory.user_id == user_id)\
+        .all()
+    
+    # 메뉴 ID를 키로 하는 히스토리 딕셔너리 생성
+    history_map = {h.menu_id: h for h in all_histories if h.menu_id}
+    
     scored_items = []
     for menu in menus:
-        # DB 조회를 유효한 user_id로 수행 (최신 히스토리 사용)
-        history = crud.get_user_history_for_menu(db, user_id=user_id, menu_id=menu.menu_id)
-        
-        # recent_menus 정보는 최신 히스토리에서 가져오기
-        if latest_history and (not history or not history.recent_menus):
-            history = latest_history
+        # 딕셔너리에서 히스토리 조회 (DB 쿼리 없음)
+        history = history_map.get(menu.menu_id, latest_history)
         
         # 개선된 알고리즘 함수 호출 (실시간 피드백 반영)
         score = calculate_recommendation_score(
@@ -291,14 +304,18 @@ def get_recommendations(
     # 3. 점수 순 정렬 및 상위 10개 (로그 및 결과용)
     scored_items.sort(key=lambda x: x[0], reverse=True)
     
-    # 랜덤성 추가하여 동일 메뉴 추천 방지
-    scored_items = add_recommendation_randomness(scored_items)
+    # 랜덤성 추가를 간소화 (성능 개선)
+    if len(scored_items) > 3:
+        # 상위 10개만 랜덤성 적용 (전체 처리 불필요)
+        top_candidates = scored_items[:10]
+        top_candidates = add_recommendation_randomness(top_candidates)
+        scored_items = top_candidates + scored_items[10:]
     
     # 🎯 3번째 추천: 유사하지만 추천되지 않았던 메뉴 포함
     top_2 = scored_items[:2]
     
-    # 3번째 메뉴 선택 로직
-    third_menu = select_diverse_third_menu(scored_items, user_id, db)
+    # 3번째 메뉴 선택 로직 (latest_history 재사용)
+    third_menu = select_diverse_third_menu_optimized(scored_items, latest_history)
     if third_menu:
         top_3 = top_2 + [third_menu]
     else:

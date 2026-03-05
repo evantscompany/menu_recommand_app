@@ -9,15 +9,32 @@ from app.models import FeedbackType
 from collections import defaultdict, Counter
 from .weather_utils import WeatherMatcher, WeatherType
 
+# 피드백 캐시 (메모리 기반)
+_feedback_cache = {}
+
 def get_latest_feedback(db: Session, user_id: int, menu_name: str):
     """
-    특정 사용자의 특정 메뉴에 대한 최신 피드백 조회
+    특정 사용자의 특정 메뉴에 대한 최신 피드백 조회 (캐싱 적용)
     """
-    return db.query(models.RecommendationFeedback)\
+    cache_key = f"{user_id}_{menu_name}"
+    
+    # 캐시 확인
+    if cache_key in _feedback_cache:
+        return _feedback_cache[cache_key]
+    
+    # DB 조회
+    feedback = db.query(models.RecommendationFeedback)\
         .filter(models.RecommendationFeedback.user_id == user_id)\
         .filter(models.RecommendationFeedback.menu_name == menu_name)\
         .order_by(models.RecommendationFeedback.created_at.desc())\
         .first()
+    
+    # 캐시 저장 (최대 100개 유지)
+    if len(_feedback_cache) > 100:
+        _feedback_cache.clear()
+    _feedback_cache[cache_key] = feedback
+    
+    return feedback
 
 # 🧠 고도화된 알고리즘 전략들
 class PatternMiningStrategy:

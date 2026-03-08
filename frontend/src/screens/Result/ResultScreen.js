@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity, Dimensions, FlatList, SafeAreaView, Alert
 import { styles } from './ResultStyle'; 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import apiClient from '../../Api/apiClient';
-import CommonLoading from '../../components/CommonLoadingScreen';
+
+// [MOD]: 기존 CommonLoading 대신 새로 만든 미니게임 로딩 컴포넌트 임포트
+import GameLoadingScreen from '../../components/GameLoadingScreen';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.72; 
@@ -29,44 +31,38 @@ const ResultScreen = ({ route, navigation }) => {
    */
   const fetchRecommendations = async () => {
 
+    /*
+    // =========================================================
+    // [MOCK_MODE]: 서버 연동 전 테스트용 (전달받은 데이터 그대로 사용)
+    // ---------------------------------------------------------
+    setLoading(true); // 로딩 시뮬레이션 시작
     
-    // // =========================================================
-    // // [MOCK_MODE]: 서버 연동 전 테스트용 (전달받은 데이터 그대로 사용)
-    // // ---------------------------------------------------------
-    // setLoading(true); // 로딩 시뮬레이션 시작
-    
-    // setTimeout(() => {
-    //   const mockData = [
-    //     {
-    //       menu_name: "매콤 치즈 부대찌개",
-    //       category: "한식",
-    //       description: "비 오는 날씨와 유저님의 매운맛 선호도가 일치합니다.",
-    //       address: "서울 강남구 역삼동 123-4",
-    //       details: { rating: "4.8" }
-    //     },
-    //     {
-    //       menu_name: "바삭한 돈카츠",
-    //       category: "일식",
-    //       description: "최근 일식 카테고리 방문 빈도가 높으시네요!",
-    //       address: "서울 강남구 논현동 56-7",
-    //       details: { rating: "4.5" }
-    //     },
-    //     {
-    //       menu_name: "연어 포케",
-    //       category: "샐러드",
-    //       description: "가벼운 한 끼를 원하실 때 추천드리는 메뉴입니다.",
-    //       address: "서울 서초구 서초동 88-9",
-    //       details: { rating: "4.2" }
-    //     }
-    //   ];
+    setTimeout(() => {
+      const mockData = [
+        {
+          menu_name: "매콤 치즈 부대찌개",
+          category: "한식",
+          price: 10000,
+          match_rate: 85,
+          description: "비 오는 날씨와 유저님의 매운맛 선호도가 일치합니다.",
+          details: { rating: 4.8 }
+        },
+        {
+          menu_name: "바삭한 돈카츠",
+          category: "일식",
+          price: 12000,
+          match_rate: 72,
+          description: "최근 일식 카테고리 방문 빈도가 높으시네요!",
+          details: { rating: 4.5 }
+        }
+      ];
 
-    //   setRecommendations(mockData);
-    //   setLoading(false);
-    //   console.log('[MOCK] 결과 화면 가짜 데이터 로드 완료');
-    // }, 1000); // 1초 뒤 데이터 출력
-    // // =========================================================
-
-
+      setRecommendations(mockData);
+      setLoading(false);
+      console.log('[MOCK] 결과 화면 가짜 데이터 로드 완료');
+    }, 2000); 
+    // =========================================================
+    */
 
     // =========================================================
     // [REAL_API]: 실제 서버 연동 구역  [GET] /api/recommendations 메뉴 추천 결과 받기
@@ -82,6 +78,10 @@ const ResultScreen = ({ route, navigation }) => {
         exploration_style: userSurvey?.is_adventurous ? "adventurous" : "stable",
         city: "Seoul"
       });
+
+      console.log('--------------------------');
+      console.log('[DEBUG] 백엔드 응답 데이터:', JSON.stringify(data, null, 2));
+      console.log('--------------------------');
 
       if (data) {
         setRecommendations(data);
@@ -100,23 +100,12 @@ const ResultScreen = ({ route, navigation }) => {
    * [POST] 유저 피드백 전송 핸들러
    */
   const handleFeedback = async (item, type) => {
-
-
-    // // =========================================================
-    // // [MOCK_MODE]: 피드백 전송 테스트용
-    // // ---------------------------------------------------------
-    // console.log(`[MOCK] 피드백: ${item.menu_name}, 타입: ${type}`);
-    // Alert.alert("알림", `${type === 'like' ? '좋아요' : '별로야'}가 반영되었습니다. (MOCK)`);
-    // // =========================================================
-
-
-
     // =========================================================
     // [REAL_API]: [POST] /api/feedback 실제 서버 연동 구역 /api/feedback 유저 피드백 전송
     // ---------------------------------------------------------
     try {
       await apiClient.post(apiClient.urls.FEEDBACK,{
-        menu_name: item.menu_name || item.name,
+        menu_name: item.menu_name,
         feedback_type: type,
         category: item.category || "일반",
         score: item.match_rate || 0
@@ -127,28 +116,30 @@ const ResultScreen = ({ route, navigation }) => {
       console.error('피드백 전송 실패:', error);
       Alert.alert("오류", "피드백 전송 중 문제가 발생했습니다.");
     }
-    // =========================================================
   };
 
   const renderItem = ({ item, index }) => {
     return (
       <View style={[styles.cardWrapper, { width: CARD_WIDTH, marginHorizontal: CARD_MARGIN }]}>
         <View style={styles.mainCard}>
-          <View style={styles.imageArea}>
+          {/* [MOD]: 이미지 영역 제거 후 상단 매칭률 헤더로 변경 */}
+          <View style={styles.matchHeader}>
             <View style={styles.rankBadge}>
               <Text style={styles.rankText}>{index + 1}위</Text>
             </View>
-            <Text style={styles.placeholderText}>📸 메뉴 이미지</Text>
+            <View style={styles.matchBadge}>
+              <Text style={styles.matchLabel}>매칭률</Text>
+              <Text style={styles.matchValue}>{item.match_rate}%</Text>
+            </View>
           </View>
 
           <View style={styles.infoArea}>
             <View style={styles.titleRow}>
-              <Text style={styles.storeName} numberOfLines={1}>{item.menu_name || item.store_name}</Text>
-              <Text style={styles.rating}>⭐ {item.details?.real_satisfaction_score || item.details?.rating || '4.5'}</Text>
+              <Text style={styles.storeName} numberOfLines={1}>{item.menu_name}</Text>
             </View>
-            <Text style={styles.categoryText}>#{item.category}</Text>
-            <Text style={styles.addressText} numberOfLines={1}>
-              {item.description ? `✨ ${item.description}` : `📍 ${item.address}`}
+            <Text style={styles.categoryText}>#{item.category}  #평균 {item.price}원</Text>
+            <Text style={styles.addressText} numberOfLines={3}>
+              {item.description}
             </Text>
           </View>
 
@@ -166,9 +157,12 @@ const ResultScreen = ({ route, navigation }) => {
               style={styles.actionBtn}
               onPress={() => {
                 Alert.alert(
-                  "저장 완료", 
-                  `주변에 '${item.menu_name}' 맛집 보기!`,
-                  [{ text: "식당 보기", onPress: () => navigation.navigate('Map', { searchQuery: item.menu_name }) }]
+                  "식당 찾기", 
+                  `주변에 '${item.menu_name}' 맛집을 보러 갈까요?`,
+                  [
+                    { text: "취소", style: "cancel" },
+                    { text: "이동", onPress: () => navigation.navigate('Map', { searchQuery: item.menu_name }) }
+                  ]
                 );
               }}
             >
@@ -185,17 +179,16 @@ const ResultScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {loading && <CommonLoading message={"취향과 날씨를\n정밀 분석 중입니다...🐣"} />}
+      {/* [MOD]: 로딩 상태일 때 미니게임 컴포넌트 렌더링 */}
+      {loading && <GameLoadingScreen />}
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>이거 어때?</Text>
-        <Text style={styles.headerSub}>당신의 취향을 분석한 결과입니다.</Text>
+        <Text style={styles.headerTitle}>{nickname || '메추리'} 추천</Text>
+        <Text style={styles.headerSub}>AI가 분석한 최적의 메뉴입니다.</Text>
       </View>
 
       <View style={styles.listContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" />
-        ) : (
+        {!loading && (
           <FlatList
             data={recommendations}
             renderItem={renderItem}

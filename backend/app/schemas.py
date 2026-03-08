@@ -142,3 +142,26 @@ class MenuRecommendation(BaseModel):
 
     class Config:
         from_attributes = True
+
+# 2026-03-03 추가
+
+class RestaurantBase(BaseModel):
+    name: str
+    address: Optional[str] = None
+    latitude: float
+    longitude: float
+    category_1: Optional[str] = None
+    category_2: Optional[str] = None
+    distance: Optional[int] = None
+    walking_time: Optional[int] = None
+
+class RestaurantCreate(RestaurantBase):
+    """식당 데이터 생성 시 사용 (필요 시)"""
+    pass
+
+class RestaurantResponse(RestaurantBase):
+    """식당 정보 조회 응답용"""
+    id: int
+
+    class Config:
+        from_attributes = True

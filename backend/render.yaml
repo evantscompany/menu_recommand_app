@@ -1,0 +1,47 @@
+services:
+  # FastAPI 백엔드 서비스
+  - type: web
+    name: menu-recommend-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements_mysql.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # TiDB Cloud 연결 정보
+      - key: TIDB_HOST
+        value: gateway01.ap-northeast-1.prod.aws.tidbcloud.com
+      - key: TIDB_PORT
+        value: 4000
+      - key: TIDB_USER
+        value: 3bJdto8FKWk47Fu.root
+      - key: TIDB_PASSWORD
+        value: NWOZOcYDO8W5nMk2  # 실제 비밀번호로 변경
+      - key: TIDB_DATABASE
+        value: test
+      
+      # JWT 설정
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      
+      # 기상청 API
+      - key: KMA_API_KEY
+        value: kZsudkRgRWCbLnZEYMVg5Q
+      - key: KMA_WEATHER_URL
+        value: https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getUltraSrtFcst
+      
+      # 좌표 설정
+      - key: SEOUL_NX
+        value: 55
+      - key: SEOUL_NY
+        value: 127
+      
+      # 환경 설정
+      - key: ENVIRONMENT
+        value: production
+
+# Render 배포 설정
+version: "1"

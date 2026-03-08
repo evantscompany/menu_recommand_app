@@ -9,7 +9,7 @@ import BASE_URL, { API_ENDPOINTS } from './config';
  */
 const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000, // 타임아웃 10초 설정
+  timeout: 60000, // 타임아웃 설정
   headers: {
     'Content-Type': 'application/json',
   },

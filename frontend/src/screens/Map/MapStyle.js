@@ -231,23 +231,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  markerContainer: {
-    backgroundColor: '#FFF',
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#6366F1',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  selectedMarker: {
-    backgroundColor: '#6366F1',
-    borderColor: '#FFF',
-    transform: [{ scale: 1.1 }], // 선택 시 약간 확대
-  },
+  
 
 });
 

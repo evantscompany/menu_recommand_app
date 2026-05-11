@@ -190,7 +190,7 @@ const ResultScreen = ({ route, navigation }) => {
       <View style={styles.listContainer}>
         {!loading && (
           <FlatList
-            data={recommendations}
+            data={recommendations}ㄴ
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             horizontal
